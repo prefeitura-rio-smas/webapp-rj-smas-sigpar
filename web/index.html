@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIGPAR-SMAS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background:#f4f7fb; color:#1f2937; }
+    .topbar { background:#193257; color:#fff; border-bottom:4px solid #0d6efd; }
+    .topbar .brand { display:flex; align-items:center; gap:12px; }
+    .brand-logo { width:38px; height:38px; border-radius:8px; background:#fff; color:#193257; display:grid; place-items:center; font-weight:800; }
+    .card { border-radius:10px; box-shadow:0 4px 18px rgba(25,50,87,.08); border:0; margin-bottom:16px; }
+    .card-header { background:#eef2f7; color:#193257; font-weight:700; }
+    .section-title { color:#193257; font-weight:700; border-left:4px solid #0d6efd; padding-left:8px; margin:18px 0 8px; }
+    .table-sm td, .table-sm th { vertical-align: middle; }
+    .table-wrap { max-height: 420px; overflow:auto; }
+    .muted { color:#64748b; }
+    .badge-perfil { background:#dbeafe; color:#1e40af; }
+    .pdf-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .form-control-sm, .form-select-sm { font-size:.82rem; }
+    .sticky-actions { position:sticky; bottom:0; background:#fff; border-top:1px solid #e2e8f0; padding:12px; z-index:5; }
+    .table thead th { position:sticky; top:0; background:#eef2f7; z-index:2; }
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+  <nav class="topbar py-2 mb-3">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="brand">
+        <div class="brand-logo">S</div>
+        <div>
+          <div class="fw-bold">SIGPAR-SMAS</div>
+          <div class="small opacity-75">Sistema Integrado de Gestão e Monitoramento de Parcerias</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span id="userEmail" class="small"></span>
+        <button id="btnLogout" class="btn btn-sm btn-outline-light hidden">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container pb-5">
+    <div id="loginCard" class="card hidden">
+      <div class="card-body text-center py-5">
+        <h4 class="mb-2">Acesso ao SIGPAR</h4>
+        <p class="muted">Entre com sua conta Google autorizada.</p>
+        <button id="btnLogin" class="btn btn-primary">Entrar com Google</button>
+        <div id="loginMsg" class="text-danger small mt-3"></div>
+      </div>
+    </div>
+
+    <div id="appArea" class="hidden">
+      <div class="card">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-lg-4">
+              <label class="form-label small fw-bold">Unidade</label>
+              <select id="selUnidade" class="form-select form-select-sm"></select>
+            </div>
+            <div class="col-lg-2">
+              <label class="form-label small fw-bold">Mês de referência</label>
+              <input type="month" id="inpMes" class="form-control form-control-sm">
+            </div>
+            <div class="col-lg-6">
+              <div class="pdf-actions">
+                <button id="btnCarregar" class="btn btn-sm btn-primary">Carregar formulário</button>
+                <button id="btnNovo" class="btn btn-sm btn-outline-secondary">Novo</button>
+                <input id="inpBuscaId" class="form-control form-control-sm" style="max-width:190px" placeholder="LANC-...">
+                <button id="btnBuscar" class="btn btn-sm btn-outline-primary">Buscar ID</button>
+                <button id="btnPdfTop" class="btn btn-sm btn-outline-danger hidden">Baixar PDF</button>
+              </div>
+            </div>
+          </div>
+          <div id="statusMsg" class="small mt-2 muted"></div>
+        </div>
+      </div>
+
+      <form id="form" class="hidden">
+        <div class="card">
+          <div class="card-header">Unidade e contrato</div>
+          <div class="card-body">
+            <div id="infoUnidade" class="row g-2 small"></div>
+          </div>
+        </div>
+
+        <div id="secLanches" class="card hidden">
+          <div class="card-header">1. Lanches</div>
+          <div class="card-body row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Previsto no mês</label>
+              <input type="number" step="0.01" id="inpLanchesPrev" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Executado no mês</label>
+              <input type="number" step="0.01" id="inpLanchesExec" class="form-control form-control-sm">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">2. Ocupação de postos</div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table class="table table-sm table-bordered">
+                <thead><tr><th>Posto</th><th style="width:90px" class="text-center">Ocupado</th><th style="width:150px">Licença médica</th><th style="width:220px">Desempenho</th></tr></thead>
+                <tbody id="tbodyPostos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">3. Insumos</div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table class="table table-sm table-bordered">
+                <thead><tr><th>Subitem</th><th>Descrição</th><th style="width:120px">Previsto</th><th style="width:120px">Executado</th></tr></thead>
+                <tbody id="tbodyInsumos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="secVeiculos" class="card hidden">
+          <div class="card-header">4. Veículos</div>
+          <div class="card-body">
+            <table class="table table-sm table-bordered">
+              <thead><tr><th>Veículo</th><th style="width:130px">Previsto</th><th style="width:130px">Executado</th></tr></thead>
+              <tbody id="tbodyVeiculos"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="secKit" class="card hidden">
+          <div class="card-header">5. Composição do kit nutricional</div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table class="table table-sm table-bordered">
+                <thead><tr><th>Item</th><th style="width:120px">Quantitativo</th><th style="width:150px">Conformidade</th><th style="width:100px">%</th><th>Observação</th></tr></thead>
+                <tbody id="tbodyKit"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">6. Parecer e análise</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Parecer do(a) Gestor(a)</label>
+              <select id="selParecer" class="form-select form-select-sm" required>
+                <option value="">Selecione...</option>
+                <option value="ATESTAR a regularidade da prestação dos serviços, considerando o cumprimento das metas e obrigações pactuadas;">ATESTAR a regularidade da prestação dos serviços, considerando o cumprimento das metas e obrigações pactuadas;</option>
+                <option value="ATESTAR a regularidade da prestação dos serviços, COM RESSALVA, considerando o cumprimento parcial das metas e obrigações pactuadas;">ATESTAR a regularidade da prestação dos serviços, COM RESSALVA, considerando o cumprimento parcial das metas e obrigações pactuadas;</option>
+                <option value="NÃO ATESTAR a regularidade da prestação dos serviços, considerando descumprimentos e impactos negativos na execução do objeto pactuado.">NÃO ATESTAR a regularidade da prestação dos serviços, considerando descumprimentos e impactos negativos na execução do objeto pactuado.</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Observações gerais</label>
+              <textarea id="txtObs" class="form-control form-control-sm" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Descrição sumária das atividades e metas</label>
+              <textarea id="txtDesc" class="form-control form-control-sm" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Análise das atividades realizadas</label>
+              <textarea id="txtAnalise" class="form-control form-control-sm" rows="2"></textarea>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label small fw-bold">Classificação da análise</label>
+              <select id="selClassificacao" class="form-select form-select-sm">
+                <option value="">Selecione...</option>
+                <option value="Plenamente">Plenamente</option>
+                <option value="Parcialmente">Parcialmente</option>
+                <option value="Regular">Regular</option>
+                <option value="Insatisfatório">Insatisfatório</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="secCentral" class="card hidden">
+          <div class="card-header">7. Nível Central</div>
+          <div class="card-body">
+            <h6 class="section-title">7.1 Regularização de locação</h6>
+            <div class="table-wrap">
+              <table class="table table-sm table-bordered">
+                <thead><tr><th>Unidade de locação</th><th style="width:100px">Dias</th><th style="width:140px">Regularização</th><th>Nota</th><th style="width:140px">Data do autorizo</th></tr></thead>
+                <tbody id="tbodyLocacao"></tbody>
+              </table>
+            </div>
+            <h6 class="section-title">7.2 Avaliação central</h6>
+            <div id="avaliacaoBox" class="row g-2"></div>
+            <div class="mt-2">
+              <label class="form-label small fw-bold">Observação do nutricionista</label>
+              <textarea id="inpObsNutri" class="form-control form-control-sm" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="sticky-actions">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button type="button" id="btnSalvar" class="btn btn-success">Salvar lançamento</button>
+            <button type="button" id="btnPdf" class="btn btn-outline-danger hidden">Baixar PDF</button>
+            <span id="formStatus" class="small muted"></span>
+          </div>
+        </div>
+      </form>
+
+      <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Lançamentos recentes</span>
+          <button id="btnRecentes" class="btn btn-sm btn-outline-secondary">Atualizar</button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+              <thead><tr><th>ID</th><th>Unidade</th><th>Mês</th><th>Autor</th><th>Registro</th><th class="text-end">Ações</th></tr></thead>
+              <tbody id="tbodyRecentes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.13"
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.11.13"
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
+      - run: uv run ruff check api etl jobs tests
+      - run: uv run bandit -c pyproject.toml -r api etl jobs
+      - run: uv run pip-audit
+      - run: uv run pytest -q --ignore=tests/test_pdf.py
+      - name: Smoke migration
+        env:
+          PYTHONPATH: api
+        run: uv run python -m app.migrate --db /tmp/ci.sqlite
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --check web/app.js
+
+  migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.11.13"
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
+      - run: uv run pytest -q tests/test_migrations.py
+
+  pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.11.13"
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
+      - run: uv run pytest -q tests/test_pdf.py
+        env:
+          SIGPAR_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/gitleaks/gitleaks:v8.21.2 detect \
+            --source . --config .gitleaks.toml --no-banner --redact
+      - name: Dependency review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

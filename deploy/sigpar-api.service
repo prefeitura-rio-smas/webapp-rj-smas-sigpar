@@ -1,0 +1,16 @@
+[Unit]
+Description=SIGPAR API (FastAPI + SQLite)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/sigpar/api
+Environment=TZ=America/Sao_Paulo
+EnvironmentFile=/etc/sigpar.env
+ExecStart=/usr/bin/python3 -m uvicorn app.main:app --host 127.0.0.1 --port 3103 --workers 1 --proxy-headers --log-level info
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

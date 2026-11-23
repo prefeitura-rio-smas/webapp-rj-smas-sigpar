@@ -1,0 +1,15 @@
+# Adicionar ao /root/prefect/traefik_dynamic.yml
+# (Traefik file provider recarrega sozinho)
+#
+# Em http.routers:
+#   sigpar-acme-router:
+#     rule: "Host(`sigpar.152.53.195.232.nip.io`) && PathPrefix(`/.well-known/acme-challenge/`)"
+#     entryPoints:
+#       - web
+#     service: sigpar-acme-service
+#
+# Em http.services:
+#   sigpar-acme-service:
+#     loadBalancer:
+#       servers:
+#         - url: "http://152.53.195.232:18080"

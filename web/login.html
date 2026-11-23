@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — SIGPAR-SMAS</title>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; background:#f4f7fb; margin:0; padding:24px; color:#1f2937; }
+    .card { max-width:640px; margin:0 auto; background:#fff; border-radius:12px; padding:24px; box-shadow:0 10px 30px rgba(25,50,87,.12); border-top:5px solid #004a80; }
+    h1 { color:#193257; font-size:1.2rem; margin-top:0; }
+    .muted { color:#64748b; font-size:.85rem; }
+    button { background:#193257; color:#fff; border:0; border-radius:8px; padding:10px 16px; font-weight:600; cursor:pointer; }
+    button.secondary { background:#e2e8f0; color:#193257; }
+    pre { background:#0f172a; color:#e2e8f0; padding:12px; border-radius:8px; overflow:auto; font-size:.8rem; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+    .err { color:#b91c1c; }
+    code { background:#eef2f7; padding:2px 5px; border-radius:4px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>SIGPAR-SMAS — teste de autenticação</h1>
+    <p class="muted">Esta página valida Firebase Auth (Google) + API. Depois do login, ela chama <code>/me</code> com o ID token.</p>
+    <div class="row">
+      <button id="btnLogin">Entrar com Google</button>
+      <button id="btnLogout" class="secondary">Sair</button>
+    </div>
+    <p id="status" class="muted">Carregando…</p>
+    <pre id="out">—</pre>
+    <p class="muted"><a href="/">Voltar</a></p>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2Yv8ZXiQKJMUDRdRqbzrIWGR68HEMGqA",
+      authDomain: "sigpar-smas.firebaseapp.com",
+      projectId: "sigpar-smas",
+      storageBucket: "sigpar-smas.firebasestorage.app",
+      messagingSenderId: "1073163291626",
+      appId: "1:1073163291626:web:3a7c9e9c31f62d57b50093"
+    };
+    const API_BASE = location.hostname.startsWith("sigpar-staging.")
+      ? "https://sigpar-staging.152.53.195.232.nip.io"
+      : "https://sigpar.152.53.195.232.nip.io";
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const statusEl = document.getElementById("status");
+    const outEl = document.getElementById("out");
+
+    function show(obj) { outEl.textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2); }
+
+    async function callMe(user) {
+      try {
+        const token = await user.getIdToken(true);
+        const r = await fetch(API_BASE + "/me", { headers: { Authorization: "Bearer " + token } });
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(r.status + " " + (body.detail || "erro"));
+        statusEl.textContent = "Autenticado: " + (user.email || user.uid);
+        show(body);
+      } catch (e) {
+        statusEl.textContent = "Autenticado, mas a API recusou: " + e.message;
+        show(e.message);
+      }
+    }
+
+    document.getElementById("btnLogin").onclick = async () => {
+      statusEl.textContent = "Abrindo login…";
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      try {
+        await auth.signInWithPopup(provider);
+      } catch (e) {
+        console.warn("popup falhou, tentando redirect", e);
+        await auth.signInWithRedirect(provider);
+      }
+    };
+    document.getElementById("btnLogout").onclick = () => auth.signOut();
+
+    auth.getRedirectResult().catch(e => console.warn("redirect result", e));
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        statusEl.textContent = "Não autenticado.";
+        show("—");
+        return;
+      }
+      callMe(user);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+secrets/
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.db
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+backups/
+*.log
+*.xlsx
+*.pdf
+.env
+tmp/
+data/

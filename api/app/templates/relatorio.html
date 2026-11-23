@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4 portrait; margin: 16mm 16mm 14mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, "Liberation Sans", sans-serif; color: #111; font-size: 9.5pt; margin: 0; }
+  .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #193257; padding-bottom: 4mm; margin-bottom: 4mm; }
+  .logo-pref { width: 48mm; height: auto; }
+  .logo-mrosc { width: 24mm; height: auto; }
+  .header-title { text-align: right; font-size: 8pt; font-weight: bold; color: #193257; text-transform: uppercase; line-height: 1.25; }
+  h1 { font-size: 13pt; text-align: center; color: #193257; margin: 3mm 0 1mm; text-transform: uppercase; }
+  h2 { font-size: 10.5pt; color: #193257; border-bottom: 1px solid #193257; padding-bottom: 1mm; margin: 5mm 0 2mm; }
+  h3 { font-size: 9.5pt; color: #193257; margin: 3mm 0 1.5mm; }
+  table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 3mm; }
+  th, td { border: 0.5pt solid #444; padding: 1.4mm 1.6mm; vertical-align: top; }
+  th { background: #eef2f7; font-weight: bold; text-align: left; }
+  .center { text-align: center; }
+  .muted { color: #555; }
+  .small { font-size: 8.5pt; }
+  .box { border: 0.6pt solid #444; padding: 2.5mm; margin: 2mm 0 3mm; }
+  .box-title { font-weight: bold; color: #193257; margin-bottom: 1mm; }
+  .pre { white-space: pre-wrap; }
+  .row-avoid { page-break-inside: avoid; break-inside: avoid; }
+  .footer { margin-top: 6mm; border-top: 0.5pt solid #999; padding-top: 2mm; text-align: center; }
+  .footer img { width: 100%; max-height: 12mm; object-fit: contain; }
+  .signature { margin-top: 14mm; text-align: center; page-break-inside: avoid; }
+  .signature-line { width: 80mm; border-top: 0.7pt solid #111; margin: 0 auto 1.5mm; }
+  .kpi { display: flex; gap: 3mm; margin: 2mm 0 3mm; }
+  .kpi div { flex: 1; border: 0.6pt solid #444; padding: 2mm; text-align: center; }
+  .kpi b { display: block; font-size: 12pt; color: #193257; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <img class="logo-pref" src="{{ logos.pref }}" alt="Prefeitura">
+    <div class="header-title">
+      SIGPAR-SMAS<br>
+      Sistema Integrado de Gestão e Monitoramento de Parcerias<br>
+      Subsecretaria de Gestão
+    </div>
+    <img class="logo-mrosc" src="{{ logos.mrosc }}" alt="MROSC">
+  </div>
+
+  <h1>Relatório de Monitoramento de Parceria</h1>
+  <p class="center muted small">Emitido em {{ emitido_em }} • Lançamento {{ lancamento.legacy_id or lancamento.id }}</p>
+
+  <h2>1. Identificação</h2>
+  <table>
+    <tr><th style="width:28%">Unidade</th><td>{{ lancamento.unidade_nome }}</td><th style="width:18%">Tipo</th><td>{{ lancamento.tipo_unidade or '-' }}</td></tr>
+    <tr><th>Território</th><td>{{ unidade.territorio or '-' }}</td><th>Mês de referência</th><td>{{ mes_display }}</td></tr>
+    <tr><th>Item do contrato</th><td>{{ lancamento.item_contrato or '-' }}</td><th>Perfil</th><td>{{ perfil_autor }}</td></tr>
+    <tr><th>Autor do lançamento</th><td>{{ lancamento.autor_email }}</td><th>Data do registro</th><td>{{ lancamento.criado_em }}</td></tr>
+    {% if lancamento.atualizado_em %}
+    <tr><th>Atualizado por</th><td>{{ lancamento.atualizado_por or '-' }}</td><th>Data da atualização</th><td>{{ lancamento.atualizado_em }}</td></tr>
+    {% endif %}
+  </table>
+
+  <h2>2. Execução e resultados</h2>
+  <div class="kpi">
+    <div><b>{{ fmt_num(lancamento.postos_ocupados) }}/{{ fmt_num(lancamento.postos_total) }}</b>Postos ocupados</div>
+    <div><b>{{ fmt_pct(postos_pct) }}</b>Ocupação de postos</div>
+    <div><b>{{ fmt_pct(lancamento.insumos_percentual) }}</b>Atingimento de insumos</div>
+    <div><b>{{ fmt_pct(lanches_pct) }}</b>Atingimento de lanches</div>
+  </div>
+
+  {% if lancamento.lanches_previsto and lancamento.lanches_previsto > 0 %}
+  <h3>2.1 Lanches</h3>
+  <table>
+    <thead><tr><th>Período</th><th class="center">Previsto</th><th class="center">Executado</th><th class="center">Atingimento</th></tr></thead>
+    <tbody>
+      {% for l in lanches %}
+      <tr><td>{{ l.periodo }}</td><td class="center">{{ fmt_num(l.previsto) }}</td><td class="center">{{ fmt_num(l.executado) }}</td><td class="center">{{ fmt_pct(l.atingimento) }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <h3>2.2 Ocupação de postos</h3>
+  {% if postos %}
+  <table>
+    <thead><tr><th>Posto</th><th class="center" style="width:16%">Ocupado</th><th style="width:25%">Desempenho</th><th class="center" style="width:18%">Licença médica</th></tr></thead>
+    <tbody>
+      {% for p in postos %}
+      <tr><td>{{ p.posto_nome }}</td><td class="center">{{ 'Sim' if p.ocupado else 'Não' }}</td><td>{{ p.desempenho or '-' }}</td><td class="center">{{ p.licenca_medica or '-' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">Sem postos cadastrados para esta unidade.</p>{% endif %}
+
+  <h3>2.3 Insumos</h3>
+  {% if insumos %}
+  <table>
+    <thead><tr><th>Subitem</th><th>Descrição</th><th class="center" style="width:14%">Previsto</th><th class="center" style="width:14%">Executado</th><th class="center" style="width:14%">Atingimento</th></tr></thead>
+    <tbody>
+      {% for i in insumos %}
+      <tr><td>{{ i.subitem or '-' }}</td><td>{{ i.descricao or '-' }}</td><td class="center">{{ fmt_num(i.previsto) }}</td><td class="center">{{ fmt_num(i.executado) }}</td><td class="center">{{ fmt_pct(i.atingimento) }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">Sem insumos registrados.</p>{% endif %}
+
+  {% if veiculos %}
+  <h3>2.4 Veículos</h3>
+  <table>
+    <thead><tr><th>Veículo</th><th class="center">Previsto</th><th class="center">Executado</th></tr></thead>
+    <tbody>
+      {% for v in veiculos %}
+      <tr><td>{{ v.nome }}</td><td class="center">{{ fmt_num(v.previsto) }}</td><td class="center">{{ fmt_num(v.executado) }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% elif lancamento.veiculos_detalhe and lancamento.veiculos_detalhe not in ('N/A','-','') %}
+  <h3>2.4 Veículos</h3>
+  <p class="pre">{{ lancamento.veiculos_detalhe }}</p>
+  {% endif %}
+
+  {% if kit %}
+  <h3>2.5 Composição do kit nutricional</h3>
+  <table>
+    <thead><tr><th>Item</th><th class="center">Quantitativo</th><th>Conformidade</th><th class="center">%</th><th>Observação</th></tr></thead>
+    <tbody>
+      {% for k in kit %}
+      <tr><td>{{ k.item }}</td><td class="center">{{ fmt_num(k.quantitativo) }}</td><td>{{ k.conformidade or '-' }}</td><td class="center">{{ fmt_pct(k.percentual) }}</td><td>{{ k.obs or '-' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <h2>3. Instrumento da parceria</h2>
+  {% if item %}
+  <table>
+    <tr><th style="width:24%">Item</th><td>{{ item.codigo }}</td><th style="width:16%">CNPJ</th><td>{{ item.cnpj or '-' }}</td></tr>
+    <tr><th>Instituição</th><td colspan="3">{{ item.instituicao or '-' }}</td></tr>
+    <tr><th>Instrumento</th><td>{{ item.instrumento or '-' }}</td><th>Processo</th><td>{{ item.processo_instrutivo or '-' }}</td></tr>
+    <tr><th>Objeto</th><td colspan="3">{{ item.objeto or '-' }}</td></tr>
+    <tr><th>Vigência</th><td>{{ item.vigencia_inicio or '-' }} a {{ item.vigencia_fim or '-' }}</td><th>Unidade</th><td>{{ unidade.nome }}</td></tr>
+  </table>
+  {% else %}<p class="muted">Item do contrato não localizado.</p>{% endif %}
+
+  <h2>4. Parecer e análise</h2>
+  <div class="box row-avoid">
+    <div class="box-title">Parecer do(a) Gestor(a)</div>
+    <div class="pre">{{ lancamento.parecer_opcao or '-' }}</div>
+  </div>
+  {% if lancamento.observacoes %}
+  <div class="box row-avoid"><div class="box-title">Observações gerais</div><div class="pre">{{ lancamento.observacoes }}</div></div>
+  {% endif %}
+  {% if lancamento.descricao_atividades %}
+  <div class="box row-avoid"><div class="box-title">Descrição das atividades e metas</div><div class="pre">{{ lancamento.descricao_atividades }}</div></div>
+  {% endif %}
+  {% if lancamento.analise_atividades %}
+  <div class="box row-avoid"><div class="box-title">Análise das atividades realizadas</div><div class="pre">{{ lancamento.analise_atividades }}</div></div>
+  {% endif %}
+  <p><b>Classificação da análise:</b> {{ lancamento.classificacao or '-' }}</p>
+
+  {% if locacao or avaliacao %}
+  <h2>5. Nível Central</h2>
+  {% if locacao %}
+  <h3>5.1 Regularização dos contratos de locação</h3>
+  <table>
+    <thead><tr><th>Unidade de locação</th><th class="center">Dias corridos</th><th>Controle de regularização</th><th>Nota</th><th class="center">Data do autorizo</th></tr></thead>
+    <tbody>
+      {% for l in locacao %}
+      <tr><td>{{ l.unidade_locacao }}</td><td class="center">{{ fmt_num(l.dias_corridos) }}</td><td>{{ l.controle_regularizacao or '-' }}</td><td>{{ l.nota or '-' }}</td><td class="center">{{ l.data_autorizo or '-' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% if avaliacao %}
+  <h3>5.2 Avaliação central</h3>
+  <table>
+    <thead><tr><th>Critério</th><th class="center" style="width:18%">Nota</th></tr></thead>
+    <tbody>
+      {% for label, key in avaliacao_labels %}
+      <tr><td>{{ label }}</td><td class="center">{{ fmt_num(avaliacao[key]) if avaliacao[key] is not none else '-' }}</td></tr>
+      {% endfor %}
+      <tr><td>Perfil / meta</td><td class="center">{{ fmt_num(avaliacao.perfil_meta) }}</td></tr>
+    </tbody>
+  </table>
+  {% if avaliacao.obs_nutricionista %}
+  <div class="box row-avoid"><div class="box-title">Observação do nutricionista</div><div class="pre">{{ avaliacao.obs_nutricionista }}</div></div>
+  {% endif %}
+  {% endif %}
+  {% endif %}
+
+  <div class="signature">
+    <div class="signature-line"></div>
+    <p><b>Assinatura do Responsável</b><br>{{ lancamento.unidade_nome }}<br>Emissão: {{ emitido_em }}</p>
+  </div>
+
+  <div class="footer">
+    <img src="{{ logos.footer }}" alt="Rodapé">
+    <p class="small muted">Documento gerado pelo SIGPAR-SMAS. Anexe ao processo administrativo no SEI os comprovantes e documentos complementares.</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "sigpar-smas"
+  },
+  "targets": {
+    "sigpar-smas": {
+      "hosting": {
+        "sigpar": [
+          "sigpar"
+        ],
+        "sigpar-staging": [
+          "sigpar-staging"
+        ]
+      }
+    }
+  }
+}

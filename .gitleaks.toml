@@ -1,0 +1,6 @@
+# Firebase Web API key é pública por design (não é segredo).
+# Mantemos a regra do Gitleaks, mas permitimos esse valor nos arquivos do app.
+[allowlist]
+description = "Firebase Web API key pública"
+regexes = ['''AIza[0-9A-Za-z_-]{35}''']
+paths = ['''web/app.js''', '''web/login.html''']

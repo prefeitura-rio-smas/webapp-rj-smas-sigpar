@@ -1,0 +1,5 @@
+# Adicionar ao /etc/caddy/Caddyfile (host: /root/sandbox/corin/caddy/Caddyfile)
+# TLS via HTTP-01: Traefik roteia /.well-known/acme-challenge/ para :18080.
+sigpar.152.53.195.232.nip.io {
+	reverse_proxy 127.0.0.1:3103
+}
