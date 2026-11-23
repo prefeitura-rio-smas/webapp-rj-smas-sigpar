@@ -51,6 +51,24 @@
 - [ ] Planilha antiga read-only/arquivo
 - [ ] Plano de rollback
 
+## F-D1 (DevOps) — concluída
+
+- [x] Repo público + commit inicial + histórico sanitizado
+- [x] CI, CodeQL default, Gitleaks, dependency review, Dependabot
+- [x] Branch protection `main`/`staging`, environments e reviewers
+- [x] WIF para Firebase/GCP; service account `sigpar-deploy`
+- [x] Site de staging + domínio autorizado no Firebase Auth
+- [x] Migrações SQL versionadas + runner; `pyproject`/`uv.lock`; testes
+
+## F-D2/F-D3 (próximas)
+
+- [ ] F-D2: testes de contrato/segurança e cobertura
+- [ ] F-D3: `/opt/sigpar` releases, usuários `sigpar-prod`/`sigpar-staging`, deploy script SSH, staging API/DB sintéticos, Caddy/Traefik
+- [ ] F-D4: CD produção com aprovação, backup/migração/health/rollback
+- [ ] F-D5: hardening, máscara de `licenca_medica`, backup binário criptografado/offsite
+- [ ] F-D6: governança operacional (DPO/retention/access review) e catálogo
+- [ ] F-D7: cutover para `/opt/sigpar`, monitoração e runbooks finais
+
 ## Pós-MVP
 
 - [ ] Telas de administração de cadastros

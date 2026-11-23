@@ -40,16 +40,30 @@ F1 — fundação (concluída):
 - [x] Backup no Sheet + restore real validados
 - [x] Login Google validado com `/me` real
 
-## DevOps / repositório (F-D em andamento)
+## DevOps / repositório
+
+**F-D1 — bootstrap concluído**
 
 - Repo público `prefeitura-rio-smas/webapp-rj-smas-sigpar`; branches `main`/`staging`.
-- CI: testes de API/migração/PDF, Ruff, Bandit, pip-audit, Gitleaks, dependency review, CodeQL.
-- CD: staging automático; produção por release + environment com revisores.
-- Deploy da API: release imutável + SSH com usuário dedicado/forced command.
-- Staging: `sigpar-staging.web.app` + API/DB sintéticos.
-- Segurança: WIF para Firebase/GCP; SSH sem root; systemd hardening; CSP/SRI (F-D5).
+- CI: testes de API/migração/PDF, Ruff, Bandit, pip-audit, Gitleaks, dependency review.
+- CodeQL: **default setup** (Python/JavaScript/Actions) + secret scanning/push protection.
+- Dependabot: atualizações semanais para `uv` e GitHub Actions.
+- Branch protection em `main`/`staging`: PR, 1 review, code owner, checks obrigatórios, sem force/delete.
+- Environments: `staging` (branch `staging`) e `production` (reviewers + bypass admin, branch `main`/tag `v*`).
+- Deploy Firebase/GCP: **WIF** configurado; service account `sigpar-deploy`; sem chave no GitHub.
+- Staging: site `sigpar-staging.web.app` criado e domínio autorizado no Firebase Auth.
+- Segurança: secrets em environments; Gitleaks; CodeQL; Dependabot; WIF; branch protection.
 - Governança: `docs/governanca-dados.md` (classificação, retenção, LGPD, acesso, backup).
-- `licenca_medica` (dado de saúde): Admin-only; mascarado para os demais.
+- `licenca_medica` (dado de saúde): decisão Admin-only/mascarado — implementação na **F-D5**.
+
+**Próximas fases**
+
+- **F-D2**: completar testes de contrato/segurança e revisar cobertura.
+- **F-D3**: release layout na VPS, usuários dedicados, deploy script, API/DB de staging sintéticos, Caddy/Traefik.
+- **F-D4**: CD de produção (release + aprovação) com backup/migração/health/rollback.
+- **F-D5**: systemd non-root, CSP/SRI, rate limit, máscara do dado de saúde, backup binário criptografado/offsite.
+- **F-D6**: governança operacional (DPO/retention/access review) e catálogo.
+- **F-D7**: cutover `/root/sigpar` → `/opt/sigpar` e monitoração.
 
 ## Estrutura
 
