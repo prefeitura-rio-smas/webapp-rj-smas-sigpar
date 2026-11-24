@@ -65,10 +65,18 @@ F1 — fundação (concluída):
 - Deploy VPS: `deploy/vps/sigpar-deploy` + inner + sudoers + SSH usuários `sigpar-deploy-staging`/`prod`.
 - Workflows: `deploy-staging.yml` e `deploy-production.yml` (este último entra na F-D4).
 
+**F-D4 — cutover de produção (concluída)**
+
+- API prod agora em `/opt/sigpar/prod/current`, serviço `sigpar-api` **non-root** (`sigpar-prod`).
+- DB prod copiado para `/var/lib/sigpar/prod/sigpar.sqlite` (83 lançamentos, 96 usuários, 86 unidades).
+- Frontend `sigpar.web.app` republicado a partir da `main`; `/health` e `/me` validados.
+- Backup (`/usr/local/bin/sigpar-backup`, cron 03:15 BRT) re-apontado para o novo DB/release.
+- Rollback disponível: unit antiga em `/etc/systemd/system/sigpar-api.service.bak-*` + DB antigo em `/root/sigpar/db/sigpar.sqlite`.
+- Workflow `deploy-production.yml` pronto para releases `v*` com environment `production`.
+
 **Próximas fases**
 
 - **F-D2**: completar testes de contrato/segurança e revisar cobertura.
-- **F-D4**: cutover da produção para `/opt/sigpar/prod`, serviço non-root, DB copy e CD com aprovação.
 - **F-D5**: CSP/SRI, rate limit, máscara de `licenca_medica`, backup binário criptografado/offsite.
 - **F-D6**: governança operacional (DPO/retention/access review) e catálogo.
 - **F-D7**: monitoração, runbooks finais e treinamento.

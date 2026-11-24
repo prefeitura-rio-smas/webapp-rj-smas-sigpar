@@ -67,8 +67,8 @@
 - [x] Caddy staging + TLS; frontend `sigpar-staging.web.app`
 - [x] Deploy script SSH + sudoers + ambiente staging
 - [x] Workflow `deploy-staging.yml`
+- [x] F-D4: cutover de produção (`/opt/sigpar/prod`, DB `/var/lib/sigpar/prod`, serviço non-root, frontend republicado, backup re-apontado)
 - [ ] F-D2: testes de contrato/segurança e cobertura
-- [ ] F-D4: cutover de produção, DB copy, serviço non-root e CD com aprovação
 - [ ] F-D5: hardening, máscara de `licenca_medica`, backup binário criptografado/offsite
 - [ ] F-D6: governança operacional (DPO/retention/access review) e catálogo
 - [ ] F-D7: monitoração, runbooks finais e treinamento

@@ -18,10 +18,22 @@ curl -s https://sigpar.152.53.195.232.nip.io/health
 docker logs --tail 50 caddy-corin
 ```
 
-- API: `127.0.0.1:3103`, systemd `sigpar-api`.
-- DB: `/root/sigpar/db/sigpar.sqlite` (migrar para `/var/lib/sigpar`).
+- API prod: `127.0.0.1:3103`, `sigpar-api` (usuário `sigpar-prod`, release `/opt/sigpar/prod/current`).
+- API staging: `127.0.0.1:3105`, `sigpar-api-staging` (release `/opt/sigpar-staging/current`).
+- DB prod: `/var/lib/sigpar/prod/sigpar.sqlite`; staging: `/var/lib/sigpar/staging/staging.sqlite`.
 - Caddy/Traefik: ver `docs/operacao.md`.
-- Backup: cron `/etc/cron.d/sigpar-backup` (03:15 BRT) + Sheet.
+- Backup: `/usr/local/bin/sigpar-backup` + cron `/etc/cron.d/sigpar-backup` (03:15 BRT) + Sheet.
+
+## Rollback do cutover F-D4
+
+```bash
+# unit antiga (root, /root/sigpar) — backup criado no cutover
+ls /etc/systemd/system/sigpar-api.service.bak-*
+systemctl stop sigpar-api
+cp /etc/systemd/system/sigpar-api.service.bak-<timestamp> /etc/systemd/system/sigpar-api.service
+systemctl daemon-reload && systemctl start sigpar-api
+# DB antigo continua em /root/sigpar/db/sigpar.sqlite
+```
 
 ## Deploy de frontend (atual)
 
