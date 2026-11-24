@@ -1,0 +1,41 @@
+#!/bin/bash
+# Deploy forçado via SSH: recebe "staging|production <tag>" em SSH_ORIGINAL_COMMAND.
+# Instalar em /usr/local/bin/sigpar-deploy (root:root 755) e usar em authorized_keys
+# com command="/usr/local/bin/sigpar-deploy".
+set -euo pipefail
+
+cmd="${SSH_ORIGINAL_COMMAND:-}"
+read -r env tag _rest <<< "$cmd"
+
+case "$env" in
+  staging)
+    user="sigpar-staging"; svc="sigpar-api-staging"; port="3105"; root="/opt/sigpar-staging" ;;
+  production)
+    user="sigpar-prod"; svc="sigpar-api"; port="3103"; root="/opt/sigpar/prod" ;;
+  *)
+    echo "uso: staging|production <tag>" >&2; exit 2 ;;
+esac
+
+if [[ -z "${tag:-}" || ! "$tag" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "tag invalida" >&2; exit 2
+fi
+
+previous=$(readlink -f "$root/current" 2>/dev/null || true)
+
+if ! sudo -u "$user" /usr/local/bin/sigpar-deploy-inner "$env" "$tag"; then
+  echo "inner falhou" >&2; exit 1
+fi
+
+sudo /usr/bin/systemctl restart "$svc"
+sleep 3
+
+if ! curl -fsS "http://127.0.0.1:$port/health" >/dev/null; then
+  echo "health falhou; rollback" >&2
+  if [ -n "$previous" ]; then
+    sudo -u "$user" /usr/local/bin/sigpar-deploy-inner rollback "$env" "$previous"
+    sudo /usr/bin/systemctl restart "$svc"
+  fi
+  exit 1
+fi
+
+echo "deploy $env $tag ok"

@@ -1,0 +1,85 @@
+name: Deploy production
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag da release (ex.: v1.0.0)"
+        required: true
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        run: echo "tag=${{ inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+      - name: Build API asset
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          tar -czf "sigpar-api-$TAG.tar.gz" api db jobs etl pyproject.toml uv.lock README.md
+          sha256sum "sigpar-api-$TAG.tar.gz" > "sigpar-api-$TAG.tar.gz.sha256"
+      - name: Publish/attach release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "sigpar-api-$TAG.tar.gz" "sigpar-api-$TAG.tar.gz.sha256" --clobber
+          else
+            gh release create "$TAG" "sigpar-api-$TAG.tar.gz" "sigpar-api-$TAG.tar.gz.sha256" \
+              --title "$TAG" --notes "production ${GITHUB_SHA}" --target "$GITHUB_SHA"
+          fi
+
+  frontend:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.SIGPAR_WIF_PROVIDER }}
+          service_account: ${{ vars.SIGPAR_FIREBASE_SA }}
+      - name: Deploy Firebase Hosting (production)
+        run: npx --yes firebase-tools@13 deploy --only hosting:sigpar --project sigpar-smas --non-interactive
+
+  api:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy API via SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" "production ${{ needs.release.outputs.tag }}"
+
+  smoke:
+    needs: [api, frontend]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Health e frontend
+        run: |
+          curl -fsS https://sigpar.152.53.195.232.nip.io/health
+          curl -fsS -o /dev/null https://sigpar.web.app

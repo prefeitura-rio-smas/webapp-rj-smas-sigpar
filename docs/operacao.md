@@ -6,12 +6,16 @@
 |---|---|
 | Frontend | https://sigpar.web.app |
 | API (health) | https://sigpar.152.53.195.232.nip.io/health |
+| Staging frontend | https://sigpar-staging.web.app |
+| Staging API | https://sigpar-staging.152.53.195.232.nip.io/health |
 | Firebase project | `sigpar-smas` |
-| Hosting site | `sigpar` |
+| Hosting sites | `sigpar`, `sigpar-staging` |
 
 ## Serviços
 
-- **API**: `systemctl status sigpar-api` / `journalctl -u sigpar-api -f` (uvicorn em `127.0.0.1:3103`).
+- **API prod**: `systemctl status sigpar-api` / `journalctl -u sigpar-api -f` (uvicorn em `127.0.0.1:3103`).
+- **API staging**: `systemctl status sigpar-api-staging` / `journalctl -u sigpar-api-staging -f` (`127.0.0.1:3105`).
+- **Deploy VPS**: ver `deploy/vps/README.md` (`sigpar-deploy`, release imutável + backup + migração + health + rollback).
 - **Caddy**: container `caddy-corin` (host network; config em `/root/sandbox/corin/caddy/Caddyfile`).
   - Reload: `docker exec caddy-corin caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile`
   - Logs: `docker logs -f caddy-corin`

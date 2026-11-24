@@ -26,7 +26,7 @@ from pathlib import Path
 
 WEB = Path(__file__).resolve().parents[1] / "web"
 PROJECT = "sigpar-smas"
-SITE = "sigpar"
+SITE = os.getenv("SIGPAR_FIREBASE_SITE", "sigpar")
 ACCOUNT = os.getenv("SIGPAR_FIREBASE_ACCOUNT", "")
 
 

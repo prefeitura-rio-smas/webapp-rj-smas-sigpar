@@ -1,0 +1,74 @@
+name: Deploy staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        run: echo "tag=staging-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - name: Build API asset
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          tar -czf "sigpar-api-$TAG.tar.gz" api db jobs etl pyproject.toml uv.lock README.md
+          sha256sum "sigpar-api-$TAG.tar.gz" > "sigpar-api-$TAG.tar.gz.sha256"
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          gh release create "$TAG" "sigpar-api-$TAG.tar.gz" "sigpar-api-$TAG.tar.gz.sha256" \
+            --prerelease --title "$TAG" --notes "staging ${GITHUB_SHA}" --target "$GITHUB_SHA"
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.SIGPAR_WIF_PROVIDER }}
+          service_account: ${{ vars.SIGPAR_FIREBASE_SA }}
+      - name: Deploy Firebase Hosting (staging)
+        run: npx --yes firebase-tools@13 deploy --only hosting:sigpar-staging --project sigpar-smas --non-interactive
+
+  api:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Deploy API via SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" "staging ${{ needs.release.outputs.tag }}"
+
+  smoke:
+    needs: [api, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health e frontend
+        run: |
+          curl -fsS https://sigpar-staging.152.53.195.232.nip.io/health
+          curl -fsS -o /dev/null https://sigpar-staging.web.app

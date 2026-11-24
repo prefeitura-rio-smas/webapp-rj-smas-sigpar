@@ -56,14 +56,22 @@ F1 — fundação (concluída):
 - Governança: `docs/governanca-dados.md` (classificação, retenção, LGPD, acesso, backup).
 - `licenca_medica` (dado de saúde): decisão Admin-only/mascarado — implementação na **F-D5**.
 
+**F-D3 — staging e deploy (concluída na parte de staging)**
+
+- Staging API: https://sigpar-staging.152.53.195.232.nip.io (`sigpar-api-staging`, porta 3105, systemd non-root).
+- Staging frontend: https://sigpar-staging.web.app (Firebase Auth autorizado).
+- DB staging sintético em `/var/lib/sigpar/staging/staging.sqlite` (5 unidades, 2 admins).
+- Release layout: `/opt/sigpar-staging/{releases,current}`; Chromium compartilhado em `/opt/sigpar/chromium`.
+- Deploy VPS: `deploy/vps/sigpar-deploy` + inner + sudoers + SSH usuários `sigpar-deploy-staging`/`prod`.
+- Workflows: `deploy-staging.yml` e `deploy-production.yml` (este último entra na F-D4).
+
 **Próximas fases**
 
 - **F-D2**: completar testes de contrato/segurança e revisar cobertura.
-- **F-D3**: release layout na VPS, usuários dedicados, deploy script, API/DB de staging sintéticos, Caddy/Traefik.
-- **F-D4**: CD de produção (release + aprovação) com backup/migração/health/rollback.
-- **F-D5**: systemd non-root, CSP/SRI, rate limit, máscara do dado de saúde, backup binário criptografado/offsite.
+- **F-D4**: cutover da produção para `/opt/sigpar/prod`, serviço non-root, DB copy e CD com aprovação.
+- **F-D5**: CSP/SRI, rate limit, máscara de `licenca_medica`, backup binário criptografado/offsite.
 - **F-D6**: governança operacional (DPO/retention/access review) e catálogo.
-- **F-D7**: cutover `/root/sigpar` → `/opt/sigpar` e monitoração.
+- **F-D7**: monitoração, runbooks finais e treinamento.
 
 ## Estrutura
 

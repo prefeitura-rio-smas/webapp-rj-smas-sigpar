@@ -60,14 +60,18 @@
 - [x] Site de staging + domínio autorizado no Firebase Auth
 - [x] Migrações SQL versionadas + runner; `pyproject`/`uv.lock`; testes
 
-## F-D2/F-D3 (próximas)
+## F-D3 — staging (concluída)
 
+- [x] Usuários `sigpar-prod`/`sigpar-staging`/deploy; release layout; Chromium compartilhado
+- [x] Staging API/DB sintéticos (`sigpar-api-staging`, 3105)
+- [x] Caddy staging + TLS; frontend `sigpar-staging.web.app`
+- [x] Deploy script SSH + sudoers + ambiente staging
+- [x] Workflow `deploy-staging.yml`
 - [ ] F-D2: testes de contrato/segurança e cobertura
-- [ ] F-D3: `/opt/sigpar` releases, usuários `sigpar-prod`/`sigpar-staging`, deploy script SSH, staging API/DB sintéticos, Caddy/Traefik
-- [ ] F-D4: CD produção com aprovação, backup/migração/health/rollback
+- [ ] F-D4: cutover de produção, DB copy, serviço non-root e CD com aprovação
 - [ ] F-D5: hardening, máscara de `licenca_medica`, backup binário criptografado/offsite
 - [ ] F-D6: governança operacional (DPO/retention/access review) e catálogo
-- [ ] F-D7: cutover para `/opt/sigpar`, monitoração e runbooks finais
+- [ ] F-D7: monitoração, runbooks finais e treinamento
 
 ## Pós-MVP
 

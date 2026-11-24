@@ -1,0 +1,6 @@
+# /etc/sudoers.d/sigpar-deploy
+# Permite ao usuário de deploy rodar apenas o inner e reiniciar o serviço.
+sigpar-deploy-staging ALL=(sigpar-staging) NOPASSWD: /usr/local/bin/sigpar-deploy-inner
+sigpar-deploy-staging ALL=(root) NOPASSWD: /usr/bin/systemctl restart sigpar-api-staging
+sigpar-deploy-prod ALL=(sigpar-prod) NOPASSWD: /usr/local/bin/sigpar-deploy-inner
+sigpar-deploy-prod ALL=(root) NOPASSWD: /usr/bin/systemctl restart sigpar-api

@@ -1,0 +1,64 @@
+#!/bin/bash
+# Executado como usuário de serviço (sigpar-staging/sigpar-prod) pelo wrapper.
+# Baixa a release imutável do GitHub, confere checksum, faz backup (prod),
+# atualiza o venv, aplica migrações e aponta o symlink current.
+set -euo pipefail
+
+if [ "${1:-}" = "rollback" ]; then
+  env="${2:-}"; target="${3:-}"
+  case "$env" in
+    staging) root="/opt/sigpar-staging" ;;
+    production) root="/opt/sigpar/prod" ;;
+    *) echo "env invalido" >&2; exit 2 ;;
+  esac
+  [ -n "$target" ] || { echo "target vazio" >&2; exit 2; }
+  ln -sfn "$target" "$root/current"
+  echo "rollback -> $target"
+  exit 0
+fi
+
+env="${1:-}"; tag="${2:-}"
+case "$env" in
+  staging) root="/opt/sigpar-staging"; db="/var/lib/sigpar/staging/staging.sqlite"; backup="0" ;;
+  production) root="/opt/sigpar/prod"; db="/var/lib/sigpar/prod/sigpar.sqlite"; backup="1" ;;
+  *) echo "env invalido" >&2; exit 2 ;;
+esac
+if [[ -z "$tag" || ! "$tag" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "tag invalida" >&2; exit 2
+fi
+
+repo="prefeitura-rio-smas/webapp-rj-smas-sigpar"
+asset="sigpar-api-$tag.tar.gz"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+curl -fsSL "https://api.github.com/repos/$repo/releases/tags/$tag" -o "$tmp/release.json"
+url=$(jq -r --arg n "$asset" '.assets[]? | select(.name==$n) | .browser_download_url' "$tmp/release.json")
+sumurl=$(jq -r --arg n "$asset.sha256" '.assets[]? | select(.name==$n) | .browser_download_url' "$tmp/release.json")
+if [ -z "$url" ] || [ "$url" = "null" ]; then
+  echo "asset $asset ausente na release $tag" >&2; exit 1
+fi
+curl -fsSL "$url" -o "$tmp/$asset"
+if [ -n "$sumurl" ] && [ "$sumurl" != "null" ]; then
+  curl -fsSL "$sumurl" -o "$tmp/$asset.sha256"
+  (cd "$tmp" && sha256sum -c "$asset.sha256")
+fi
+
+if [ "$backup" = "1" ] && [ -f "$db" ]; then
+  mkdir -p "$root/backups"
+  chmod 700 "$root/backups"
+  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  sqlite3 "$db" ".backup '$root/backups/pre-$tag-$stamp.sqlite'"
+  gzip -f "$root/backups/pre-$tag-$stamp.sqlite"
+fi
+
+rel="$root/releases/$tag"
+rm -rf "$rel"
+mkdir -p "$rel"
+tar -xzf "$tmp/$asset" -C "$rel"
+
+UV_CACHE_DIR="$root/.uv-cache" /usr/local/bin/uv sync --frozen --no-dev --directory "$rel"
+PYTHONPATH="$rel/api" "$rel/.venv/bin/python" -m app.migrate --db "$db"
+ln -sfn "$rel" "$root/current"
+chmod 600 "$db" 2>/dev/null || true
+echo "release $tag pronta em $rel"

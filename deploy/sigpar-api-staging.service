@@ -1,0 +1,29 @@
+[Unit]
+Description=SIGPAR API (staging)
+After=network.target
+
+[Service]
+Type=simple
+User=sigpar-staging
+Group=sigpar-staging
+WorkingDirectory=/opt/sigpar-staging/current/api
+Environment=TZ=America/Sao_Paulo
+EnvironmentFile=/etc/sigpar/sigpar-staging.env
+ExecStart=/opt/sigpar-staging/current/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 3105 --workers 1 --proxy-headers --log-level info
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadWritePaths=/var/lib/sigpar/staging
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
