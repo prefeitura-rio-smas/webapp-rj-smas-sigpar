@@ -68,10 +68,11 @@
 - [x] Deploy script SSH + sudoers + ambiente staging
 - [x] Workflow `deploy-staging.yml`
 - [x] F-D4: cutover de produção (`/opt/sigpar/prod`, DB `/var/lib/sigpar/prod`, serviço non-root, frontend republicado, backup re-apontado)
-- [ ] F-D2: testes de contrato/segurança e cobertura
-- [ ] F-D5: hardening, máscara de `licenca_medica`, backup binário criptografado/offsite
+- [x] F-D5 mínimo: `licenca_medica` mascarado (API/PDF/tela/Sheet); preservação em edição de não-admin
 - [ ] F-D6: governança operacional (DPO/retention/access review) e catálogo
+- [ ] F-D2: testes de contrato/segurança e cobertura
 - [ ] F-D7: monitoração, runbooks finais e treinamento
+- [ ] Backlog F-D5: backup binário criptografado/offsite, CSP/SRI, rate limit, version history do Sheet
 
 ## Pós-MVP
 

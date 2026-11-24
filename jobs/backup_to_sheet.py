@@ -131,6 +131,16 @@ def main() -> int:
         data = {t: dump_table(con, t) for t in TABLES}
         con.rollback()
 
+        # Dado de saúde não vai em claro para o Sheet; o binário (backlog) é a cópia full.
+        if "lancamento_postos" in data:
+            cols, rows = data["lancamento_postos"]
+            if "licenca_medica" in cols:
+                idx = cols.index("licenca_medica")
+                data["lancamento_postos"] = (
+                    cols,
+                    [row[:idx] + ["Restrito"] + row[idx + 1:] for row in rows],
+                )
+
         sh = Sheets(SHEET_ID, SA_KEY)
         sh.load_titles()
         counts: list[list] = []

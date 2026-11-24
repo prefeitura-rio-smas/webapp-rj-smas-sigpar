@@ -2,18 +2,19 @@
 
 > Documento vivo. Revisão obrigatória em mudanças de schema, acesso, retenção,
 > fornecedores ou finalidade. Aprovação: SMAS (data owner) + encarregado/DPO.
+> Última atualização: 2026-11-24 (F-D5 mínimo + preparação F-D6).
 
 ## 1. Escopo e ativos
 
 | Ativo | Onde vive | Observação |
 |---|---|---|
-| Banco operacional | SQLite na VPS (`/var/lib/sigpar/sigpar.sqlite`) | Fonte da verdade |
-| Snapshot legível | Google Sheets (`SIGPAR - Backup`) | Campos sensíveis mascarados |
-| Backup binário | Local criptografado + Google Drive (offsite) | Full, com dado de saúde; criptografado |
+| Banco operacional | SQLite na VPS (`/var/lib/sigpar/prod/sigpar.sqlite`) | Fonte da verdade |
+| Snapshot legível | Google Sheets (`SIGPAR - Backup`) | `licenca_medica` mascarado como `Restrito` |
+| Backup binário | **Backlog F-D5** (local/VPS pré-deploy + offsite criptografado) | Hoje: apenas Sheet |
 | Código/config | GitHub `prefeitura-rio-smas/webapp-rj-smas-sigpar` | Público; sem dados/segredos |
-| Frontend | Firebase Hosting (`sigpar.web.app`) | Estático |
+| Frontend | Firebase Hosting (`sigpar.web.app` / `sigpar-staging.web.app`) | Estático |
 | Identidade | Firebase Auth (Google) | Allowlist no SQLite |
-| Planilha de origem | Google Sheets (SMAS) | Legado; não versionar ID/PII |
+| Planilha de origem | Google Sheets (SMAS, legado) | ID em env; não versionar PII |
 
 ## 2. Classificação
 
@@ -22,18 +23,23 @@
 | Público | nomes de unidades, itens de contrato, metas | livre |
 | Interno | indicadores de execução, pareceres, textos de análise | autenticação + unidade |
 | Pessoal | e-mails/nomes de servidores, autoria de lançamentos | autenticação + unidade; minimização |
-| **Sensível (saúde)** | `lancamento_postos.licenca_medica` | **Admin-only**; mascarado no PDF/API para os demais; Sheet mascarado; binário criptografado |
+| **Sensível (saúde)** | `lancamento_postos.licenca_medica` | **Admin-only**; API/PDF/tela mascarados para os demais; Sheet `Restrito`; binário criptografado no backlog |
 
-## 3. Papéis
+- Implementado na F-D5 mínima (2026-11-24): não-admin não lê/grava o campo; edição por não-admin preserva o valor existente.
+- Residual: version history do Google Sheet pode conter valores antigos não mascarados até a retenção expirar; binário full/criptografado ainda não existe.
 
-| Papel | Responsável (a confirmar) |
+## 3. Papéis (proposta aceita; confirmar DPO)
+
+| Papel | Responsável |
 |---|---|
-| Controlador | SMAS / Subsecretaria de Gestão |
-| Data owner | SMAS/SUBG |
-| Data steward | equipe SMAS indicada |
+| Controlador | SMAS / Subsecretaria de Gestão (`subg.smas@prefeitura.rio`) |
+| Data owner | SMAS/SUBG (nome do subsecretário a confirmar) |
+| Data steward | Leone Barreto + Leonardo Meireles |
 | Operador técnico | Leone Barreto / equipe de dados |
 | Segurança | Leone Barreto |
-| DPO/encarregado | encarregado de dados da Prefeitura (confirmar canal) |
+| DPO/encarregado | encarregado de dados da Prefeitura (contato a confirmar) |
+| Access review | Leone Barreto + Leonardo Meireles + Vitor Dantas (`dantasfvitor`) |
+| Incidentes | DPO + Leone Barreto + Leonardo Meireles |
 
 ## 4. Base legal e finalidade (LGPD)
 
@@ -43,13 +49,14 @@
 - Minimização: coletar apenas o necessário; não incluir CPF de cidadãos;
   evitar nomes em campos livres.
 - Direitos dos titulares: solicitação via SMAS/DPO; correção/registro.
+- DPIA do `licenca_medica`: pendente de validação do DPO (F-D6).
 
 ## 5. Acesso
 
 | Perfil | Escopo |
 |---|---|
 | Admin | todas as unidades; exclusão; dado de saúde; NÍVEL CENTRAL |
-| Cord | unidades do território + unidade padrão |
+| Cord | unidades do território + unidade padrão; sem dado de saúde |
 | User | própria unidade; sem dado de saúde |
 | Técnico (VPS/DB) | acesso operacional mínimo; logs; sem uso de dados para fins pessoais |
 | Backup | service account restrita ao Sheet/Drive de backup |
@@ -58,36 +65,46 @@
 - Revisão de acesso trimestral; desativar usuários inativos (`usuarios.ativo`).
 - Chaves/segredos em cofres; nunca no repositório.
 
-## 6. Retenção (proposta — validar)
+### 5.1 Access review inicial (F-D6)
+
+- **App**: 96 usuários (19 admin / 10 cord / 67 user); inclui `scan.vulnerabilidade` e `leandro.esquerdo`; revisar ativos/inativos.
+- **GitHub**: 9 collaborators (org + Vitor Dantas), repo público, branch protection e environment de produção.
+- **VPS**: `root`, `sigpar-prod`, `sigpar-staging`, `sigpar-deploy-prod`, `sigpar-deploy-staging`; chaves SSH e sudoers restritos.
+- **Firebase/GCP**: conta `leone.smtr` (owner), WIF, SAs `sigpar-deploy` e `sigpar-backup`.
+- **Drive/Sheet**: conta `leone.smtr` + SA de backup.
+- Evidência/ações serão registradas em `docs/acesso-revisao.md` (F-D6).
+
+## 6. Retenção (proposta aceita — validar com DPO)
 
 | Dado | Retenção |
 |---|---|
-| Lançamentos/auditoria | conforme tabela de temporalidade administrativa (proposta: 5 anos) |
+| Lançamentos/auditoria | 5 anos (confirmar temporalidade SMAS) |
 | Logs de aplicação | 90 dias |
-| Backup binário local | 30 dias |
-| Backup offsite | 90–365 dias (definir) |
-| Snapshot Sheet | 12 meses (definir) |
+| Backup binário local | 30 dias (backlog F-D5) |
+| Backup offsite | 90–365 dias (backlog F-D5) |
+| Snapshot Sheet | 12 meses |
 | Staging | descartável; dados sintéticos |
 
-RPO proposto: 24h (backup diário) / RTO: 1 dia útil.
+RPO atual: 24h (Sheet diário). RTO: 1 dia útil.
 Exclusão: soft delete (`status='excluido'`); purga conforme retenção.
 
 ## 7. Backup e restore
 
-- Pré-deploy: backup binário + upload criptografado; deploy aborta se falhar.
-- Diário: binário local + offsite; snapshot no Sheet.
-- Criptografia: `age`; chave privada fora do Drive; cópia em cofre.
-- Teste de restore mensal (banco novo + contagens).
+- **Atual**: snapshot diário no Sheet (cron 23:15 BRT — corrigir para 03:15 BRT no F-D6) + restore via `etl/restore_from_sheet.py` (testado).
+- O Sheet grava `licenca_medica` como `Restrito`; o restore do Sheet não recupera o valor real.
+- Pré-deploy binário local só ocorre via deploy script; não há offsite/criptografia ainda.
+- **Backlog F-D5**: binário full criptografado (`age`) + offsite, retenção e teste de restore mensal.
 - Acesso ao backup restrito ao operador e ao DPO, quando necessário.
 
 ## 8. Segurança
 
 - TLS em todas as pontas; API restrita por Firebase Auth + allowlist.
 - API/PDF rodando como usuário dedicado, não root; systemd hardening.
-- CORS restrito; CSP/SRI; rate limit; validação server-side; SQL parametrizado.
-- Segredos em `/etc` (600) e GitHub Environments; WIF para GCP.
+- CORS restrito; validação server-side; SQL parametrizado.
+- Segredos em `/etc` (600/640) e GitHub Environments; WIF para GCP.
 - Varredura: Gitleaks, CodeQL (repo público), Dependabot, `pip-audit`, Bandit.
 - Branch protection, environments, revisão de código e de produção.
+- **Backlog F-D5**: CSP/SRI e rate limit.
 
 ## 9. Incidentes
 
@@ -111,12 +128,31 @@ Canal: GitHub Security Advisories + contato do DPO/SMAS.
 ## 11. Dados em CI/staging
 
 - CI usa apenas fixtures sintéticas; nunca produção.
-- Staging usa banco sintético; sem PII real; usuários de teste.
+- Staging usa banco sintético; admins de teste (`leone.smtr`, `leone.abreu`); sem dados de produção.
 - Logs do Actions são públicos (repo público): não imprimir PII/segredos.
 
 ## 12. Catálogo e qualidade
 
-- Dicionário em `docs/modelo-dados.md`; este documento cobre classificação.
+- Dicionário em `docs/modelo-dados.md`; catálogo detalhado em `docs/catalogo-dados.md` (F-D6).
 - Reconciliação de contagens/somas na migração e nos deploys.
 - `audit_log` para criação/edição/exclusão; revisão periódica.
 - Duplicidades unidade+mês são sinalizadas (`duplicado=1`) e revisadas.
+
+## 13. Risco residual aceito (F-D6)
+
+| Risco | Mitigação atual | Owner | Prazo |
+|---|---|---|---|
+| Binário/offsite criptografado ausente | Sheet diário + restore | Leone | backlog F-D5 |
+| CSP/SRI e rate limit ausentes | CORS, auth, TLS | Leone | backlog F-D5 |
+| Version history do Sheet com dado antigo | acesso restrito ao Drive | Leone | revisar no F-D5 |
+| Conta pessoal Gmail/VPS | MFA, least privilege | Leone | plano de migração |
+| VPS única | backups/restore | Leone | monitorar |
+
+Aceite formal: data owner/DPO (F-D6). Até lá, este documento registra o estado real e o backlog.
+
+## 14. Aprovação
+
+- **Data owner**: SMAS/SUBG — pendente de assinatura.
+- **DPO/encarregado**: Prefeitura — contato/assinatura pendente.
+- **Segurança/operação**: Leone Barreto — revisão técnica.
+- **Access review**: Leone + Meireles + Vitor — execução no F-D6.

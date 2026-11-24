@@ -71,9 +71,13 @@ a recuperação primária; o Sheet é snapshot legível com dados sensíveis mas
 ## Restore (Sheet — fallback)
 
 ```bash
-set -a; . /etc/sigpar.env; set +a
-python3 /root/sigpar/etl/restore_from_sheet.py /tmp/sigpar-restored.sqlite
+set -a; . /etc/sigpar/sigpar-prod.env; set +a
+/opt/sigpar/prod/current/.venv/bin/python /root/sigpar/etl/restore_from_sheet.py /tmp/sigpar-restored.sqlite
 ```
+
+Atenção: desde a F-D5 o snapshot do Sheet grava `licenca_medica` como `Restrito`;
+o restore do Sheet não recupera o valor real. A cópia full/criptografada está no
+backlog do F-D5.
 
 ## Rollback de deploy
 

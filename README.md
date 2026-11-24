@@ -65,6 +65,12 @@ F1 — fundação (concluída):
 - Deploy VPS: `deploy/vps/sigpar-deploy` + inner + sudoers + SSH usuários `sigpar-deploy-staging`/`prod`.
 - Workflows: `deploy-staging.yml` e `deploy-production.yml` (este último entra na F-D4).
 
+**F-D5 mínimo — dado de saúde (concluído)**
+
+- `licenca_medica` mascarado para não-admin na API/PDF/tela; create/edit de não-admin não grava o campo.
+- Edição por não-admin **preserva** o valor existente.
+- Snapshot do Sheet grava `Restrito`; binário criptografado/offsite, CSP/SRI e rate limit ficam no backlog com aceite formal.
+
 **F-D4 — cutover de produção (concluída)**
 
 - API prod agora em `/opt/sigpar/prod/current`, serviço `sigpar-api` **non-root** (`sigpar-prod`).
@@ -76,10 +82,10 @@ F1 — fundação (concluída):
 
 **Próximas fases**
 
-- **F-D2**: completar testes de contrato/segurança e revisar cobertura.
-- **F-D5**: CSP/SRI, rate limit, máscara de `licenca_medica`, backup binário criptografado/offsite.
-- **F-D6**: governança operacional (DPO/retention/access review) e catálogo.
+- **F-D6**: governança operacional (DPO/retention/access review) e catálogo; aceite formal do backlog.
+- **F-D2**: testes de contrato/segurança e cobertura.
 - **F-D7**: monitoração, runbooks finais e treinamento.
+- **Backlog F-D5**: binário criptografado/offsite, CSP/SRI, rate limit, version history do Sheet.
 
 ## Estrutura
 

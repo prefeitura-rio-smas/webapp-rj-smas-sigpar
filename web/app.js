@@ -214,17 +214,21 @@ function renderPostos() {
     return;
   }
   const detalhe = new Map((state.detail?.postos || []).map((p) => [p.posto_id, p]));
+  const admin = state.me?.perfil === "admin";
   tbody.innerHTML = postos.map((p) => {
     const d = detalhe.get(p.id) || {};
     const ocupado = d.ocupado ? "checked" : "";
     const desempenho = d.desempenho || "Satisfatório";
     const licenca = d.licenca_medica || "Não";
+    const licencaCell = admin
+      ? `<select class="form-select form-select-sm sel-licenca">
+        <option value="-">-</option><option value="Sim"${licenca === "Sim" ? " selected" : ""}>Sim</option>
+        <option value="Não"${licenca === "Não" ? " selected" : ""}>Não</option></select>`
+      : `<span class="text-muted">Restrito</span>`;
     return `<tr data-posto-id="${p.id}">
       <td>${esc(p.nome)}</td>
       <td class="text-center"><input type="checkbox" class="form-check-input chk-ocupado" ${ocupado}></td>
-      <td><select class="form-select form-select-sm sel-licenca">
-        <option value="-">-</option><option value="Sim"${licenca === "Sim" ? " selected" : ""}>Sim</option>
-        <option value="Não"${licenca === "Não" ? " selected" : ""}>Não</option></select></td>
+      <td>${licencaCell}</td>
       <td><select class="form-select form-select-sm sel-desempenho">
         <option value="-">-</option>
         <option value="Satisfatório"${desempenho === "Satisfatório" ? " selected" : ""}>Satisfatório</option>
@@ -243,13 +247,14 @@ function syncPosto(tr) {
   const chk = tr.querySelector(".chk-ocupado");
   const lic = tr.querySelector(".sel-licenca");
   const des = tr.querySelector(".sel-desempenho");
-  lic.disabled = !chk.checked;
+  if (!chk || !des) return;
+  if (lic) lic.disabled = !chk.checked;
   des.disabled = !chk.checked;
   if (!chk.checked) {
-    lic.value = "-";
+    if (lic) lic.value = "-";
     des.value = "-";
   } else {
-    if (lic.value === "-") lic.value = "Não";
+    if (lic && lic.value === "-") lic.value = "Não";
     if (des.value === "-") des.value = "Satisfatório";
   }
 }
@@ -393,14 +398,16 @@ function preencherCabecalho(detalhe) {
 function coletarPayload() {
   const unidadeId = Number($("selUnidade").value);
   const mes = $("inpMes").value;
+  const admin = state.me?.perfil === "admin";
   const detalhePostos = [...document.querySelectorAll("#tbodyPostos tr[data-posto-id]")].map((tr) => {
     const chk = tr.querySelector(".chk-ocupado");
     const ocupado = chk.checked;
+    const lic = tr.querySelector(".sel-licenca");
     return {
       posto_id: Number(tr.dataset.postoId),
       ocupado,
       desempenho: ocupado ? tr.querySelector(".sel-desempenho").value : null,
-      licenca_medica: ocupado ? tr.querySelector(".sel-licenca").value : null
+      licenca_medica: admin && ocupado && lic ? lic.value : null
     };
   });
   const detalheInsumos = [...document.querySelectorAll("#tbodyInsumos tr[data-insumo-id]")].map((tr) => ({

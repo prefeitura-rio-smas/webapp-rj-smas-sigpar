@@ -255,9 +255,15 @@ def _inserir_detalhes(
     payload: LancamentoIn,
     mapas: dict,
     unidade: dict,
+    pode_saude: bool = False,
+    existing_health: dict[int, str] | None = None,
 ) -> None:
     for p in payload.detalhe_postos:
         posto = mapas["postos"].get(p.posto_id) or {}
+        if pode_saude:
+            licenca = p.licenca_medica if p.ocupado else None
+        else:
+            licenca = (existing_health or {}).get(p.posto_id) if p.ocupado else None
         con.execute(
             "INSERT INTO lancamento_postos (lancamento_id,posto_id,posto_nome,ocupado,desempenho,licenca_medica) "
             "VALUES (?,?,?,?,?,?)",
@@ -267,7 +273,7 @@ def _inserir_detalhes(
                 posto.get("nome"),
                 1 if p.ocupado else 0,
                 p.desempenho if p.ocupado else None,
-                p.licenca_medica if p.ocupado else None,
+                licenca,
             ),
         )
 
@@ -394,7 +400,9 @@ def _novo_legacy_id(con: sqlite3.Connection) -> str:
     return f"LANC-{int(time.time() * 1000)}-{secrets.randbelow(900) + 100}"
 
 
-def _carregar_completo(con: sqlite3.Connection, launch_id: int) -> dict:
+def _carregar_completo(
+    con: sqlite3.Connection, launch_id: int, mask_health: bool = False
+) -> dict:
     row = con.execute(
         "SELECT * FROM lancamentos WHERE id = ? AND status = 'ativo'", (launch_id,)
     ).fetchone()
@@ -426,6 +434,9 @@ def _carregar_completo(con: sqlite3.Connection, launch_id: int) -> dict:
             (launch_id,),
         ).fetchall()
     ]
+    if mask_health:
+        for posto in postos:
+            posto["licenca_medica"] = "Restrito" if posto.get("licenca_medica") else None
     insumos = [
         dict(r)
         for r in con.execute(
@@ -655,7 +666,9 @@ def detalhar_lancamento(
         if not row:
             raise HTTPException(status_code=404, detail="lancamento nao encontrado")
         exigir_unidade(usuario["email"], row["unidade_id"])
-        return _carregar_completo(con, lancamento_id)
+        return _carregar_completo(
+            con, lancamento_id, mask_health=usuario["perfil"] != "admin"
+        )
     finally:
         con.close()
 
@@ -720,7 +733,14 @@ def criar_lancamento(
             ),
         )
         launch_id = cur.lastrowid
-        _inserir_detalhes(con, launch_id, payload, mapas, unidade)
+        _inserir_detalhes(
+            con,
+            launch_id,
+            payload,
+            mapas,
+            unidade,
+            pode_saude=usuario["perfil"] == "admin",
+        )
         _audit(
             con,
             usuario["email"],
@@ -806,8 +826,24 @@ def editar_lancamento(
                 lancamento_id,
             ),
         )
+        existing_health = {
+            r["posto_id"]: r["licenca_medica"]
+            for r in con.execute(
+                "SELECT posto_id, licenca_medica FROM lancamento_postos WHERE lancamento_id = ?",
+                (lancamento_id,),
+            ).fetchall()
+            if r["posto_id"] is not None
+        }
         _deletar_detalhes(con, lancamento_id)
-        _inserir_detalhes(con, lancamento_id, payload, mapas, unidade)
+        _inserir_detalhes(
+            con,
+            lancamento_id,
+            payload,
+            mapas,
+            unidade,
+            pode_saude=usuario["perfil"] == "admin",
+            existing_health=existing_health,
+        )
         _audit(
             con,
             usuario["email"],
@@ -880,7 +916,9 @@ def pdf_lancamento(
         if not row:
             raise HTTPException(status_code=404, detail="lancamento nao encontrado")
         exigir_unidade(usuario["email"], row["unidade_id"])
-        data = _carregar_completo(con, lancamento_id)
+        data = _carregar_completo(
+            con, lancamento_id, mask_health=usuario["perfil"] != "admin"
+        )
     finally:
         con.close()
     try:
