@@ -15,7 +15,7 @@
 
 - **API prod**: `systemctl status sigpar-api` / `journalctl -u sigpar-api -f` (`127.0.0.1:3103`, usuário `sigpar-prod`, código `/opt/sigpar/prod/current`, DB `/var/lib/sigpar/prod/sigpar.sqlite`).
 - **API staging**: `systemctl status sigpar-api-staging` / `journalctl -u sigpar-api-staging -f` (`127.0.0.1:3105`, `/opt/sigpar-staging/current`, DB `/var/lib/sigpar/staging/staging.sqlite`).
-- **Backup**: `/usr/local/bin/sigpar-backup` (cron 03:15 BRT) + Sheet; binário/offsite entra na F-D5.
+- **Backup**: `/usr/local/bin/sigpar-backup` via `sigpar-backup.timer` (03:15 America/Sao_Paulo) + Sheet; `licenca_medica` mascarado como `Restrito`. Binário/offsite no backlog F-D5.
 - **Deploy VPS**: ver `deploy/vps/README.md` (`sigpar-deploy`, release imutável + backup + migração + health + rollback).
 - **Caddy**: container `caddy-corin` (host network; config em `/root/sandbox/corin/caddy/Caddyfile`).
   - Reload: `docker exec caddy-corin caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile`

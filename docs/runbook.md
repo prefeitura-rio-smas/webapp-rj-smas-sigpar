@@ -22,7 +22,7 @@ docker logs --tail 50 caddy-corin
 - API staging: `127.0.0.1:3105`, `sigpar-api-staging` (release `/opt/sigpar-staging/current`).
 - DB prod: `/var/lib/sigpar/prod/sigpar.sqlite`; staging: `/var/lib/sigpar/staging/staging.sqlite`.
 - Caddy/Traefik: ver `docs/operacao.md`.
-- Backup: `/usr/local/bin/sigpar-backup` + cron `/etc/cron.d/sigpar-backup` (03:15 BRT) + Sheet.
+- Backup: `/usr/local/bin/sigpar-backup` via `sigpar-backup.timer` (03:15 America/Sao_Paulo) + Sheet (`licenca_medica=Restrito`).
 
 ## Rollback do cutover F-D4
 

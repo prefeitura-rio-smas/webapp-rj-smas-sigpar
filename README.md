@@ -65,6 +65,14 @@ F1 — fundação (concluída):
 - Deploy VPS: `deploy/vps/sigpar-deploy` + inner + sudoers + SSH usuários `sigpar-deploy-staging`/`prod`.
 - Workflows: `deploy-staging.yml` e `deploy-production.yml` (este último entra na F-D4).
 
+**F-D6 — governança (documentação concluída; assinaturas pendentes)**
+
+- Access review: 96 app (19 admin/10 cord/67 user), 9 GitHub, 5 VPS, 2 Firebase Auth reais (contas de teste removidas), SAs/Drive.
+- Documentos: `governanca-dados`, `acesso-revisao`, `catalogo-dados`, `incidentes`, `riscos`, `governanca-aprovacao`.
+- Retenção: 5 anos lançamentos/audit; 90 dias logs; 30 dias binário (backlog); 12 meses Sheet.
+- Backup em **systemd timer 03:15 BRT**; Sheet com `licenca_medica=Restrito` (1.237 linhas).
+- Pendente: assinatura data owner/DPO, Meireles/Vitor e aprovação da release `v0.2.0` em produção.
+
 **F-D5 mínimo — dado de saúde (concluído)**
 
 - `licenca_medica` mascarado para não-admin na API/PDF/tela; create/edit de não-admin não grava o campo.
@@ -82,7 +90,8 @@ F1 — fundação (concluída):
 
 **Próximas fases**
 
-- **F-D6**: governança operacional (DPO/retention/access review) e catálogo; aceite formal do backlog.
+- **F-D5 produção**: aprovar a release `v0.2.0` no environment `production` (máscara no app live).
+- **F-D6 assinaturas**: data owner/DPO + Meireles/Vitor.
 - **F-D2**: testes de contrato/segurança e cobertura.
 - **F-D7**: monitoração, runbooks finais e treinamento.
 - **Backlog F-D5**: binário criptografado/offsite, CSP/SRI, rate limit, version history do Sheet.

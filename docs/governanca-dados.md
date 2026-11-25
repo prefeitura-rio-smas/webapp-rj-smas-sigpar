@@ -156,3 +156,12 @@ Aceite formal: data owner/DPO (F-D6). Até lá, este documento registra o estado
 - **DPO/encarregado**: Prefeitura — contato/assinatura pendente.
 - **Segurança/operação**: Leone Barreto — revisão técnica.
 - **Access review**: Leone + Meireles + Vitor — execução no F-D6.
+
+## 15. Documentos relacionados
+
+- `docs/acesso-revisao.md` — revisão de acessos (app, GitHub, VPS, Firebase/Drive).
+- `docs/catalogo-dados.md` — catálogo/classificação/retenção por tabela.
+- `docs/incidentes.md` — contatos e playbook.
+- `docs/riscos.md` — registro de riscos e backlog aceito.
+- `docs/governanca-aprovacao.md` — assinaturas e pendências.
+- `docs/runbook.md` — operação/rollback/backup/restore.
