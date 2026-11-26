@@ -71,26 +71,27 @@ F1 — fundação (concluída):
 - Documentos: `governanca-dados`, `acesso-revisao`, `catalogo-dados`, `incidentes`, `riscos`, `governanca-aprovacao`.
 - Retenção: 5 anos lançamentos/audit; 90 dias logs; 30 dias binário (backlog); 12 meses Sheet.
 - Backup em **systemd timer 03:15 BRT**; Sheet com `licenca_medica=Restrito` (1.237 linhas).
-- Pendente: assinatura data owner/DPO, Meireles/Vitor e aprovação da release `v0.2.0` em produção.
+- Pendente: assinatura data owner/DPO e Meireles/Vitor. Release `v0.2.0` deployada em produção em 2026-11-26 via break-glass (run 45485818588 cancelado).
 
 **F-D5 mínimo — dado de saúde (concluído)**
 
 - `licenca_medica` mascarado para não-admin na API/PDF/tela; create/edit de não-admin não grava o campo.
 - Edição por não-admin **preserva** o valor existente.
 - Snapshot do Sheet grava `Restrito`; binário criptografado/offsite, CSP/SRI e rate limit ficam no backlog com aceite formal.
+- **Produção**: `v0.2.0` no ar em 2026-11-26 (API + frontend); backup pré-deploy, health e rollback validados.
 
 **F-D4 — cutover de produção (concluída)**
 
 - API prod agora em `/opt/sigpar/prod/current`, serviço `sigpar-api` **non-root** (`sigpar-prod`).
 - DB prod copiado para `/var/lib/sigpar/prod/sigpar.sqlite` (83 lançamentos, 96 usuários, 86 unidades).
 - Frontend `sigpar.web.app` republicado a partir da `main`; `/health` e `/me` validados.
-- Backup (`/usr/local/bin/sigpar-backup`, cron 03:15 BRT) re-apontado para o novo DB/release.
+- Backup (`/usr/local/bin/sigpar-backup`, timer 03:15 BRT) re-apontado para o novo DB/release.
 - Rollback disponível: unit antiga em `/etc/systemd/system/sigpar-api.service.bak-*` + DB antigo em `/root/sigpar/db/sigpar.sqlite`.
 - Workflow `deploy-production.yml` pronto para releases `v*` com environment `production`.
 
 **Próximas fases**
 
-- **F-D5 produção**: aprovar a release `v0.2.0` no environment `production` (máscara no app live).
+- **F-D5 produção**: `v0.2.0` deployada em 2026-11-26 via break-glass (sem aprovação do environment); máscara no app live.
 - **F-D6 assinaturas**: data owner/DPO + Meireles/Vitor.
 - **F-D2**: testes de contrato/segurança e cobertura.
 - **F-D7**: monitoração, runbooks finais e treinamento.

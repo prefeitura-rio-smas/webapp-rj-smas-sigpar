@@ -2,7 +2,7 @@
 
 > Documento vivo. Revisão obrigatória em mudanças de schema, acesso, retenção,
 > fornecedores ou finalidade. Aprovação: SMAS (data owner) + encarregado/DPO.
-> Última atualização: 2026-11-24 (F-D5 mínimo + preparação F-D6).
+> Última atualização: 2026-11-26 (F-D5 em produção via break-glass + F-D6).
 
 ## 1. Escopo e ativos
 
@@ -90,7 +90,7 @@ Exclusão: soft delete (`status='excluido'`); purga conforme retenção.
 
 ## 7. Backup e restore
 
-- **Atual**: snapshot diário no Sheet (cron 23:15 BRT — corrigir para 03:15 BRT no F-D6) + restore via `etl/restore_from_sheet.py` (testado).
+- **Atual**: snapshot diário no Sheet (timer 03:15 BRT) + restore via `etl/restore_from_sheet.py` (testado).
 - O Sheet grava `licenca_medica` como `Restrito`; o restore do Sheet não recupera o valor real.
 - Pré-deploy binário local só ocorre via deploy script; não há offsite/criptografia ainda.
 - **Backlog F-D5**: binário full criptografado (`age`) + offsite, retenção e teste de restore mensal.
@@ -147,6 +147,7 @@ Canal: GitHub Security Advisories + contato do DPO/SMAS.
 | Version history do Sheet com dado antigo | acesso restrito ao Drive | Leone | revisar no F-D5 |
 | Conta pessoal Gmail/VPS | MFA, least privilege | Leone | plano de migração |
 | VPS única | backups/restore | Leone | monitorar |
+| Deploy F-D5 via break-glass (2026-11-26) | backup pré-deploy, health, rollback | Leone | retrospectiva F-D6 |
 
 Aceite formal: data owner/DPO (F-D6). Até lá, este documento registra o estado real e o backlog.
 

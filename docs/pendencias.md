@@ -70,7 +70,7 @@
 - [x] F-D4: cutover de produção (`/opt/sigpar/prod`, DB `/var/lib/sigpar/prod`, serviço non-root, frontend republicado, backup re-apontado)
 - [x] F-D5 mínimo: `licenca_medica` mascarado (API/PDF/tela/Sheet); preservação em edição de não-admin
 - [x] F-D6 documentação: access review, catálogo, incidentes, riscos, aprovação; backup timer 03:15 BRT
-- [ ] F-D5 produção: aprovar/deployar `v0.2.0` no environment `production`
+- [x] F-D5 produção: `v0.2.0` deployada em 2026-11-26 via `sigpar-deploy-inner production v0.2.0` (break-glass admin; run 45485818588 cancelado; backup pré-deploy, health e frontend validados)
 - [ ] F-D6 assinaturas: data owner/DPO, Meireles/Vitor
 - [ ] F-D2: testes de contrato/segurança e cobertura
 - [ ] F-D7: monitoração, runbooks finais e treinamento

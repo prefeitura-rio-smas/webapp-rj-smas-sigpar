@@ -1,13 +1,13 @@
 # Runbook — SIGPAR
 
-> Estado atual: F-D1 (bootstrap do repo/CI). Deploy automatizado entra na F-D3/F-D4.
+> Estado atual: F-D5 em produção (`v0.2.0`); F-D6 com assinaturas pendentes.
 
 ## URLs
 
 | Ambiente | Frontend | API |
 |---|---|---|
 | Produção | https://sigpar.web.app | https://sigpar.152.53.195.232.nip.io |
-| Staging (a criar) | https://sigpar-staging.web.app | https://sigpar-staging.152.53.195.232.nip.io |
+| Staging | https://sigpar-staging.web.app | https://sigpar-staging.152.53.195.232.nip.io |
 
 ## Serviços atuais (VPS)
 
@@ -48,14 +48,14 @@ No CI/CD: WIF + `firebase deploy --only hosting:<target>`.
 
 ```bash
 # sempre com backup prévio em produção
-PYTHONPATH=api python3 -m app.migrate --db /var/lib/sigpar/sigpar.sqlite
+PYTHONPATH=api python3 -m app.migrate --db /var/lib/sigpar/prod/sigpar.sqlite
 ```
 
 ## Backup
 
 ```bash
-set -a; . /etc/sigpar.env; set +a
-python3 /root/sigpar/jobs/backup_to_sheet.py
+sudo systemctl start sigpar-backup.service
+sudo journalctl -u sigpar-backup.service -n 30 --no-pager
 ```
 
 Binário criptografado/offsite: entra na F-D5 (`age` + Drive). O backup binário é
@@ -72,7 +72,7 @@ a recuperação primária; o Sheet é snapshot legível com dados sensíveis mas
 
 ```bash
 set -a; . /etc/sigpar/sigpar-prod.env; set +a
-/opt/sigpar/prod/current/.venv/bin/python /root/sigpar/etl/restore_from_sheet.py /tmp/sigpar-restored.sqlite
+/opt/sigpar/prod/current/.venv/bin/python /opt/sigpar/prod/current/etl/restore_from_sheet.py /tmp/sigpar-restored.sqlite
 ```
 
 Atenção: desde a F-D5 o snapshot do Sheet grava `licenca_medica` como `Restrito`;

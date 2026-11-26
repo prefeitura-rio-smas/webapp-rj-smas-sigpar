@@ -21,24 +21,25 @@
   - Reload: `docker exec caddy-corin caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile`
   - Logs: `docker logs -f caddy-corin`
 - **Traefik**: container `traefik` (config dinâmica em `/root/prefect/traefik_dynamic.yml`, file provider com watch).
-- **SQLite**: `/root/sigpar/db/sigpar.sqlite` (WAL). A API usa 1 worker.
+- **SQLite**: `/var/lib/sigpar/prod/sigpar.sqlite` (WAL). A API usa 1 worker.
 
 ## Configuração
 
-`/etc/sigpar.env` (600):
+`/etc/sigpar/sigpar-prod.env` (640 root:sigpar-prod):
 
 ```
-SIGPAR_DB=/root/sigpar/db/sigpar.sqlite
+SIGPAR_DB=/var/lib/sigpar/prod/sigpar.sqlite
 SIGPAR_FIREBASE_PROJECT=sigpar-smas
 SIGPAR_CORS_ORIGINS=https://sigpar.web.app,https://sigpar.firebaseapp.com,https://sigpar-smas.web.app,https://sigpar-smas.firebaseapp.com
 SIGPAR_NOAUTH=0
-SIGPAR_BACKUP_SHEET_ID=
-SIGPAR_BACKUP_SA_KEY=/root/sigpar/secrets/sigpar-backup.json
+SIGPAR_BACKUP_SHEET_ID=<id>
+SIGPAR_BACKUP_SA_KEY=/etc/sigpar/sigpar-backup.json
+TZ=America/Sao_Paulo
 ```
 
 - `SIGPAR_NOAUTH=1` só para desenvolvimento/testes. **Nunca** em produção.
 - `secrets/firebase-web-config.json`: config pública do Web App (apiKey/authDomain/projectId/appId).
-- `secrets/sigpar-backup.json`: chave da service account de backup (600, gitignored).
+- `/etc/sigpar/sigpar-backup.json`: chave da service account de backup (640 root:sigpar-prod, não versionar).
 
 ## Deploy do frontend
 
@@ -52,12 +53,16 @@ Localmente, o script usa a conta definida em `SIGPAR_FIREBASE_ACCOUNT`.
 
 ## Deploy da API
 
+Via release/tag (workflow `deploy-production.yml`) ou break-glass na VPS:
+
 ```bash
-cd /root/sigpar
-git diff            # revisar
-systemctl restart sigpar-api
+sudo -u sigpar-prod /usr/local/bin/sigpar-deploy-inner production v0.2.0
+sudo systemctl restart sigpar-api
 curl -s https://sigpar.152.53.195.232.nip.io/health
 ```
+
+O inner baixa o asset do release, faz backup pré-deploy, `uv sync`, migração,
+troca o symlink e deixa o rollback disponível.
 
 ## Backup (Google Sheets)
 
@@ -65,14 +70,14 @@ Pré-requisitos (uma vez):
 
 1. Planilha `SIGPAR - Backup` na pasta configurada no Drive, compartilhada como
    **Editor** com `sigpar-backup@sigpar-smas.iam.gserviceaccount.com`.
-2. IDs configurados em `SIGPAR_BACKUP_SHEET_ID` e `SIGPAR_BACKUP_DRIVE_FOLDER_ID`
-   no `/etc/sigpar.env` (não versionar).
+2. ID configurado em `SIGPAR_BACKUP_SHEET_ID` e chave em
+   `SIGPAR_BACKUP_SA_KEY` no `/etc/sigpar/sigpar-prod.env` (não versionar).
 3. Teste manual:
    ```bash
-   set -a; . /etc/sigpar.env; set +a
-   python3 /root/sigpar/jobs/backup_to_sheet.py
+   sudo systemctl start sigpar-backup.service
+   sudo journalctl -u sigpar-backup.service -n 30 --no-pager
    ```
-4. Agendamento já instalado em `/etc/cron.d/sigpar-backup` (03:15 America/Sao_Paulo).
+4. Agendamento via `sigpar-backup.timer` (03:15 America/Sao_Paulo).
 
 O job grava uma aba por tabela + `_meta` (timestamp/contagens/versão do schema).
 Ele lê o SQLite em uma transação para o snapshot ser consistente.
@@ -80,8 +85,8 @@ Ele lê o SQLite em uma transação para o snapshot ser consistente.
 ## Restore
 
 ```bash
-set -a; . /etc/sigpar.env; set +a
-python3 /root/sigpar/etl/restore_from_sheet.py /root/sigpar/db/sigpar-restored.sqlite
+set -a; . /etc/sigpar/sigpar-prod.env; set +a
+/opt/sigpar/prod/current/.venv/bin/python /opt/sigpar/prod/current/etl/restore_from_sheet.py /tmp/sigpar-restored.sqlite
 # validar contagens; parar a API; trocar o arquivo; subir a API
 ```
 
@@ -111,5 +116,5 @@ curl -s https://sigpar.web.app | head
 curl -s https://sigpar.152.53.195.232.nip.io/health
 systemctl is-active sigpar-api
 docker logs --tail 50 caddy-corin
-sqlite3 /root/sigpar/db/sigpar.sqlite 'PRAGMA integrity_check;'
+sqlite3 /var/lib/sigpar/prod/sigpar.sqlite 'PRAGMA integrity_check;'
 ```
