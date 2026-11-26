@@ -21,6 +21,7 @@ Documento base: `docs/governanca-dados.md` (F-D6)
 - Riscos R1–R8 (`docs/riscos.md`); backlog F-D5 aceito pelo owner técnico (binário/offsite, CSP/SRI/rate limit, version history do Sheet).
 - `licenca_medica`: Admin-only; API/PDF/tela/Sheet mascarados (F-D5 mínimo).
 - F-D5 produção: deploy direto na VPS em 2026-11-26 (`sigpar-deploy-inner production v0.2.0`), via break-glass de admin; environment `production` não aprovado e run 45485818588 cancelado; backup pré-deploy, migração, health e frontend validados.
+- F-D2/F-D7: release `v0.2.1` deployada em 2026-11-26 (`sigpar-deploy-inner production v0.2.1`), via break-glass; CI verde; headers/validação e healthcheck ativos; run `45891802657` cancelado.
 
 ## Assinaturas
 
@@ -28,6 +29,7 @@ Documento base: `docs/governanca-dados.md` (F-D6)
 - [ ] DPO/encarregado
 - [x] Segurança/operação — Leone Barreto, 2026-11-25
 - [x] Deploy F-D5 produção — Leone Barreto, 2026-11-26 (break-glass; sem segundo revisor)
+- [x] Deploy F-D2/F-D7 (`v0.2.1`) — Leone Barreto, 2026-11-26 (break-glass; CI verde)
 - [ ] Access review — Leonardo Meireles / Vitor Dantas (Meireles/Vitor pendentes)
 
 ## Pendências para concluir o F-D6
@@ -36,3 +38,4 @@ Documento base: `docs/governanca-dados.md` (F-D6)
 2. Assinatura do data owner e do DPO.
 3. Confirmação do Meireles/Vitor na access review.
 4. [x] Deploy da release `v0.2.0` em produção — concluído em 2026-11-26 via break-glass, fora do gate do environment; registrar a retrospectiva no F-D6.
+5. [x] Deploy da release `v0.2.1` (F-D2/F-D7) em produção — concluído em 2026-11-26 via break-glass; CI verde, uptime e healthcheck ativos.

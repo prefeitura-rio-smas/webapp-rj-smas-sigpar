@@ -78,7 +78,7 @@ F1 — fundação (concluída):
 - `licenca_medica` mascarado para não-admin na API/PDF/tela; create/edit de não-admin não grava o campo.
 - Edição por não-admin **preserva** o valor existente.
 - Snapshot do Sheet grava `Restrito`; binário criptografado/offsite, CSP/SRI e rate limit ficam no backlog com aceite formal.
-- **Produção**: `v0.2.0` no ar em 2026-11-26 (API + frontend); backup pré-deploy, health e rollback validados.
+- **Produção**: `v0.2.1` no ar em 2026-11-26 (API + frontend); backup pré-deploy, health e rollback validados.
 
 **F-D2 — testes/segurança (concluído)**
 
@@ -103,7 +103,7 @@ F1 — fundação (concluída):
 
 **Próximas fases**
 
-- **F-D5 produção**: `v0.2.0` deployada em 2026-11-26 via break-glass (sem aprovação do environment); máscara no app live.
+- **F-D5 produção**: `v0.2.1` deployada em 2026-11-26 via break-glass (sem aprovação do environment); máscara no app live.
 - **F-D6 assinaturas**: data owner/DPO + Meireles/Vitor.
 - **Backlog F-D5**: binário criptografado/offsite, CSP/SRI, rate limit, version history do Sheet.
 

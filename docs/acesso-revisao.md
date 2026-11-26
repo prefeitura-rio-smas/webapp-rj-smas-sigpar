@@ -19,7 +19,7 @@ Revisores: Leone Barreto, Leonardo Meireles, Vitor Dantas (`dantasfvitor`)
 
 - **9 collaborators**: `leonebar`, `meirelesleonardo`, `dantasfvitor`, `ssaulolopes`, `mariacfalcao`, `enzostana`, `luisamartins26`, `camilarocha27`, `VivianeBueno`.
 - Repo **público**; `main`/`staging` protegidas; environment `production` com 2 revisores e bypass de admin.
-- Deploy F-D5 (`v0.2.0`) em 2026-11-26 feito direto na VPS via break-glass de admin; run `45485818588` cancelado; sem segundo revisor (registrado em `docs/governanca-aprovacao.md` e R9).
+- Deploy F-D5 (`v0.2.0`) e F-D2/F-D7 (`v0.2.1`) em 2026-11-26 feito direto na VPS via break-glass de admin; runs `45485818588`/`45891802657` cancelados; sem segundo revisor (registrado em `docs/governanca-aprovacao.md` e R9).
 - Ação: revisar se todos precisam de write; MFA obrigatório; remover acessos ao sair da equipe.
 
 ## 3. VPS

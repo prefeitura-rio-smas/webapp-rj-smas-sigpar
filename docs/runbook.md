@@ -1,6 +1,6 @@
 # Runbook — SIGPAR
 
-> Estado atual: F-D5 em produção (`v0.2.0`); F-D2/F-D7 implementados; F-D6 com assinaturas pendentes.
+> Estado atual: F-D5/F-D2/F-D7 em produção (`v0.2.1`); F-D6 com assinaturas pendentes.
 
 ## URLs
 

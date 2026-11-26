@@ -12,7 +12,7 @@ Data: 2026-11-25 (R9 em 2026-11-26). Revisão: F-D6; aceite formal pendente do d
 | R6 | Repo público expõe arquitetura | Reconhecimento para ataque | Sem segredos; branch protection; CodeQL/Gitleaks | Revisar docs; manter sem PII | Leone | contínuo |
 | R7 | 19 admins no app | Superprivilégio | Allowlist, MFA, audit | Revisar com owner (access review) | Leone/Meireles/Vitor | F-D6 |
 | R8 | `scan.vulnerabilidade` admin | Conta de scanner com privilégio | Revisar necessidade; MFA | Confirmar com owner | Leone | F-D6 |
-| R9 | Deploy F-D5 em produção via break-glass, sem segundo revisor | Mudança não revisada; regressão operacional | Release testada em staging; backup pré-deploy; health/rollback; run cancelado | Retrospectiva/assinatura F-D6; revisar processo | Leone | F-D6 |
+| R9 | Deploy F-D5/F-D2/F-D7 em produção via break-glass, sem segundo revisor | Mudança não revisada; regressão operacional | CI verde; release testada; backup pré-deploy; health/rollback; run cancelado | Retrospectiva/assinatura F-D6; revisar processo | Leone | F-D6 |
 
 ## Aceite
 
