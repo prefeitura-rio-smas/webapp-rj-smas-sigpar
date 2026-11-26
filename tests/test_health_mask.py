@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+import app.launches as launchesmod
 from app.auth import get_current_user
 from app.db import connect
 from app.main import app
@@ -77,8 +78,15 @@ def _health(launch_id: int):
         con.close()
 
 
-def test_health_data_mascarado_e_preservado():
+def test_health_data_mascarado_e_preservado(monkeypatch):
     unidade, posto, insumo = _seed_context()
+    capturado = []
+
+    def fake_pdf(data):
+        capturado.append(data)
+        return b"%PDF-1.4\n%%EOF\n"
+
+    monkeypatch.setattr(launchesmod, "render_pdf", fake_pdf)
     try:
         with TestClient(app) as client:
             _as("user@local")
@@ -110,7 +118,14 @@ def test_health_data_mascarado_e_preservado():
             pdf = client.get(f"/lancamentos/{admin_launch}/pdf")
             assert pdf.status_code == 200
             assert pdf.headers["content-type"].startswith("application/pdf")
+            assert capturado[-1]["postos"][0]["licenca_medica"] == "Restrito"
 
+            _as("dev@local")
+            admin_pdf = client.get(f"/lancamentos/{admin_launch}/pdf")
+            assert admin_pdf.status_code == 200
+            assert capturado[-1]["postos"][0]["licenca_medica"] == "Sim"
+
+            _as("user@local")
             # edição por não-admin não pode apagar o dado de saúde existente
             payload = _payload(unidade, posto, insumo, "2027-01-01")
             payload["detalhe_postos"][0]["licenca_medica"] = None

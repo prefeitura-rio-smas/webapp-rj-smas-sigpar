@@ -103,8 +103,10 @@ Exclusão: soft delete (`status='excluido'`); purga conforme retenção.
 - CORS restrito; validação server-side; SQL parametrizado.
 - Segredos em `/etc` (600/640) e GitHub Environments; WIF para GCP.
 - Varredura: Gitleaks, CodeQL (repo público), Dependabot, `pip-audit`, Bandit.
+- Testes de contrato/segurança com cobertura mínima de 75% no CI; headers de segurança na API.
 - Branch protection, environments, revisão de código e de produção.
-- **Backlog F-D5**: CSP/SRI e rate limit.
+- Monitoração: uptime externo (GitHub Actions) + healthcheck local (API/backup).
+- **Backlog F-D5**: CSP/SRI no frontend e rate limit.
 
 ## 9. Incidentes
 

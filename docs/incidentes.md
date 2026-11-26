@@ -31,5 +31,7 @@
 ## Canais
 
 - GitHub Security Advisories (private vulnerability reporting) para vulnerabilidades.
+- Monitoração: issue `[monitoracao] SIGPAR indisponivel` (workflow `Uptime`) e
+  `sigpar-healthcheck.timer` local; ver `docs/monitoracao.md`.
 - Discord/Issue interno para operação; nunca colar credenciais/PII em canal público.
 - O repo é público: issues e logs do Actions são públicos; não incluir PII/segredos.

@@ -29,6 +29,10 @@ def normalizar_mes(value: str) -> str:
         text += "-01"
     if not re.fullmatch(r"\d{4}-\d{2}-01", text):
         raise HTTPException(status_code=422, detail="referencia_mes deve ser YYYY-MM ou YYYY-MM-01")
+    try:
+        datetime.strptime(text, "%Y-%m-%d")
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="referencia_mes invalida") from exc
     return text
 
 

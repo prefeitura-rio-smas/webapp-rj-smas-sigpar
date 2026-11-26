@@ -1,0 +1,15 @@
+[Unit]
+Description=SIGPAR healthcheck (API local + idade do backup)
+After=network.target sigpar-api.service
+
+[Service]
+Type=oneshot
+User=sigpar-prod
+Group=sigpar-prod
+WorkingDirectory=/opt/sigpar/prod/current
+ExecStart=/opt/sigpar/prod/current/.venv/bin/python /opt/sigpar/prod/current/jobs/healthcheck.py --url http://127.0.0.1:3103/health --db /var/lib/sigpar/prod/sigpar.sqlite --max-backup-age 26
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/var/lib/sigpar/prod

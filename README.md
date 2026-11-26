@@ -80,6 +80,18 @@ F1 — fundação (concluída):
 - Snapshot do Sheet grava `Restrito`; binário criptografado/offsite, CSP/SRI e rate limit ficam no backlog com aceite formal.
 - **Produção**: `v0.2.0` no ar em 2026-11-26 (API + frontend); backup pré-deploy, health e rollback validados.
 
+**F-D2 — testes/segurança (concluído)**
+
+- Testes de contrato/segurança: auth, CORS, headers, permissões por unidade, validação, duplicidade, edição/exclusão e SQL injection.
+- Cobertura mínima de 75% no CI (total ~90%; job API ~84%); bug de mês inválido (`YYYY-13`) corrigido.
+- Headers de segurança na API (`nosniff`, `DENY`, CSP, Referrer/Permissions).
+
+**F-D7 — monitoração/runbook/treinamento (concluído; timer no próximo deploy)**
+
+- Workflow `Uptime` (15 min) checa API/frontend e abre/fecha issue de incidente.
+- `sigpar-healthcheck.timer` valida `/health` local e idade do backup (26h); units em `deploy/`.
+- Documentos: `monitoracao.md`, `treinamento.md`, `runbook.md` com checklist e rollback.
+
 **F-D4 — cutover de produção (concluída)**
 
 - API prod agora em `/opt/sigpar/prod/current`, serviço `sigpar-api` **non-root** (`sigpar-prod`).
@@ -93,8 +105,6 @@ F1 — fundação (concluída):
 
 - **F-D5 produção**: `v0.2.0` deployada em 2026-11-26 via break-glass (sem aprovação do environment); máscara no app live.
 - **F-D6 assinaturas**: data owner/DPO + Meireles/Vitor.
-- **F-D2**: testes de contrato/segurança e cobertura.
-- **F-D7**: monitoração, runbooks finais e treinamento.
 - **Backlog F-D5**: binário criptografado/offsite, CSP/SRI, rate limit, version history do Sheet.
 
 ## Estrutura
@@ -104,10 +114,10 @@ api/        FastAPI (auth, endpoints, PDF)
 web/        SPA estática publicada no Firebase Hosting
 db/         schema.sql + migrations SQL versionadas
 etl/        Sheet -> SQLite (F2) e restore a partir do Sheet
-jobs/       backup_to_sheet.py
+jobs/       backup_to_sheet.py, healthcheck.py
 deploy/     deploy_hosting.py, Caddyfile, systemd
-docs/       arquitetura, modelo de dados, operação, governança, runbook
-.github/    CI, security, Dependabot, CODEOWNERS, templates
+docs/       arquitetura, modelo de dados, operação, governança, runbook, monitoração, treinamento
+.github/    CI, security, dependabot, CODEOWNERS, templates, uptime
 pyproject.toml / uv.lock
 secrets/    chaves/credenciais (gitignored)
 ```

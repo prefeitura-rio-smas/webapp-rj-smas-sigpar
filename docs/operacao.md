@@ -16,11 +16,11 @@
 - **API prod**: `systemctl status sigpar-api` / `journalctl -u sigpar-api -f` (`127.0.0.1:3103`, usuário `sigpar-prod`, código `/opt/sigpar/prod/current`, DB `/var/lib/sigpar/prod/sigpar.sqlite`).
 - **API staging**: `systemctl status sigpar-api-staging` / `journalctl -u sigpar-api-staging -f` (`127.0.0.1:3105`, `/opt/sigpar-staging/current`, DB `/var/lib/sigpar/staging/staging.sqlite`).
 - **Backup**: `/usr/local/bin/sigpar-backup` via `sigpar-backup.timer` (03:15 America/Sao_Paulo) + Sheet; `licenca_medica` mascarado como `Restrito`. Binário/offsite no backlog F-D5.
+- **Monitoração**: `.github/workflows/uptime.yml` (15 min, issue de incidente) + `sigpar-healthcheck.timer` local (API + idade do backup). Detalhes em `docs/monitoracao.md`.
 - **Deploy VPS**: ver `deploy/vps/README.md` (`sigpar-deploy`, release imutável + backup + migração + health + rollback).
-- **Caddy**: container `caddy-corin` (host network; config em `/root/sandbox/corin/caddy/Caddyfile`).
-  - Reload: `docker exec caddy-corin caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile`
-  - Logs: `docker logs -f caddy-corin`
-- **Traefik**: container `traefik` (config dinâmica em `/root/prefect/traefik_dynamic.yml`, file provider com watch).
+- **Caddy**: container `caddy-edge` (host network; config em `/root/edge/Caddyfile`).
+  - Reload: `docker exec caddy-edge caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile`
+  - Logs: `docker logs -f caddy-edge`
 - **SQLite**: `/var/lib/sigpar/prod/sigpar.sqlite` (WAL). A API usa 1 worker.
 
 ## Configuração
@@ -115,6 +115,6 @@ Pendente: publicar o OAuth consent screen (Google Auth Platform) para que os
 curl -s https://sigpar.web.app | head
 curl -s https://sigpar.152.53.195.232.nip.io/health
 systemctl is-active sigpar-api
-docker logs --tail 50 caddy-corin
+docker logs --tail 50 caddy-edge
 sqlite3 /var/lib/sigpar/prod/sigpar.sqlite 'PRAGMA integrity_check;'
 ```

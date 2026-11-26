@@ -1,0 +1,50 @@
+name: Uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checar producao
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -u
+          TITLE="[monitoracao] SIGPAR indisponivel"
+          api_body=$(curl -fsS --max-time 15 https://sigpar.152.53.195.232.nip.io/health 2>/dev/null || true)
+          web_code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://sigpar.web.app 2>/dev/null || true)
+          api_ok=false
+          if printf '%s' "$api_body" | python3 -c 'import json,sys; d=json.load(sys.stdin); raise SystemExit(0 if d.get("ok") is True and d.get("db")=="ok" else 1)' 2>/dev/null; then
+            api_ok=true
+          fi
+          existing=$(gh issue list --repo "$REPO" --state open --search "$TITLE in:title" --json number --jq '.[0].number // empty')
+          if [ "$api_ok" = true ] && [ "$web_code" = "200" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --repo "$REPO" --comment "Serviços normalizados em $(date -u +%FT%TZ)."
+            fi
+            echo "ok"
+            exit 0
+          fi
+          body=$(printf 'Falha em %s\n\n- API health: `%s`\n- Frontend HTTP: `%s`\n\nRun: %s/%s/actions/runs/%s\n' \
+            "$(date -u +%FT%TZ)" "${api_body:-sem resposta}" "${web_code:-sem resposta}" \
+            "$GITHUB_SERVER_URL" "$REPO" "$GITHUB_RUN_ID")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" --body "$body"
+          else
+            gh issue create --repo "$REPO" --title "$TITLE" --body "$body"
+          fi
+          exit 1

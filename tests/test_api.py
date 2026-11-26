@@ -9,7 +9,7 @@ def _seed():
     try:
         con.execute(
             "INSERT OR IGNORE INTO unidades (nome, nome_norm, tipo, territorio) "
-            "VALUES ('NÍVEL CENTRAL', 'nivel central', 'APOIO À GESTÃO', 'APOIO À GESTÃO')"
+            "VALUES ('NÍVEL CENTRAL', 'nível central', 'APOIO À GESTÃO', 'APOIO À GESTÃO')"
         )
         con.execute(
             "INSERT OR IGNORE INTO unidades (nome, nome_norm, tipo, territorio) "

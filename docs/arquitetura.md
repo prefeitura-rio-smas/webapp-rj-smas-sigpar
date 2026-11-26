@@ -16,7 +16,7 @@ https://sigpar.152.53.195.232.nip.io   Caddy (TLS Let's Encrypt)
 FastAPI :3103 (uvicorn, 1 worker)
   ├── verifica ID token Firebase (projeto sigpar-smas)
   ├── autorização por perfil/unidade (SQLite)
-  ├── SQLite /root/sigpar/db/sigpar.sqlite (WAL)
+  ├── SQLite /var/lib/sigpar/prod/sigpar.sqlite (WAL)
   ├── geração de PDF (Chromium/Playwright)
   └── snapshot diário → Google Sheets (service account)
 ```
@@ -37,8 +37,8 @@ FastAPI :3103 (uvicorn, 1 worker)
 ## Decisões de infraestrutura
 
 - **VPS**: mesma do CORIN (152.53.195.232).
-- **Caddy**: container `caddy-corin`, config host `/root/sandbox/corin/caddy/Caddyfile`; novo site block `sigpar.152.53.195.232.nip.io`.
-- **Traefik**: container do Prefect em `:80`; novo router ACME para o host SIGPAR (HTTP-01).
+- **Caddy**: edge (`/root/edge/Caddyfile`); site `sigpar.152.53.195.232.nip.io` → `127.0.0.1:3103`.
+- **Traefik**: removido do fluxo do SIGPAR; o Caddy é o edge.
 - **SQLite**: um arquivo, um writer (uvicorn 1 worker). Backup via `sqlite3 .backup` no job de snapshot (a cópia binária não é persistida no MVP; o Sheet é a cópia de recuperação).
 - **Firebase**: projeto novo `sigpar-smas` (o ID `sigpar` já estava em uso), site `sigpar` → `sigpar.web.app`, separado do `rj-smtr-corin`.
 - **Sem Firestore**: o banco é SQLite na VPS.
@@ -49,6 +49,8 @@ FastAPI :3103 (uvicorn, 1 worker)
 - Token Firebase verificado no servidor com os certificados públicos do Google (sem keyfile).
 - Allowlist no SQLite; toda query é escopada pelas unidades permitidas.
 - CORS apenas para `sigpar.web.app` e domínios Firebase do projeto.
+- Headers de segurança na API (`nosniff`, `DENY`, CSP, Referrer/Permissions).
+- Monitoração: uptime externo no GitHub Actions + healthcheck local (API/backup).
 - API escuta em 127.0.0.1; TLS terminado no Caddy.
 - Segredos em `/etc/sigpar.env` (600) e `secrets/` (600, gitignored).
 - Auditoria de criação/edição/exclusão em `audit_log`.

@@ -29,7 +29,7 @@ jobs:
       - run: uv run ruff check api etl jobs tests
       - run: uv run bandit -c pyproject.toml -r api etl jobs
       - run: uv run pip-audit
-      - run: uv run pytest -q --ignore=tests/test_pdf.py
+      - run: uv run pytest -q --ignore=tests/test_pdf.py --cov=api/app --cov-report=term-missing
       - name: Smoke migration
         env:
           PYTHONPATH: api
