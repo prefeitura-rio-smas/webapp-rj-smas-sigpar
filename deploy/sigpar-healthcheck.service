@@ -12,4 +12,4 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadOnlyPaths=/var/lib/sigpar/prod
+ReadWritePaths=/var/lib/sigpar/prod

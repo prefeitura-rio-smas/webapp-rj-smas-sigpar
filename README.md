@@ -86,7 +86,7 @@ F1 — fundação (concluída):
 - Cobertura mínima de 75% no CI (total ~90%; job API ~84%); bug de mês inválido (`YYYY-13`) corrigido.
 - Headers de segurança na API (`nosniff`, `DENY`, CSP, Referrer/Permissions).
 
-**F-D7 — monitoração/runbook/treinamento (concluído; timer no próximo deploy)**
+**F-D7 — monitoração/runbook/treinamento (concluído; timer ativo)**
 
 - Workflow `Uptime` (15 min) checa API/frontend e abre/fecha issue de incidente.
 - `sigpar-healthcheck.timer` valida `/health` local e idade do backup (26h); units em `deploy/`.

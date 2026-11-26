@@ -73,7 +73,7 @@
 - [x] F-D5 produção: `v0.2.0` deployada em 2026-11-26 via `sigpar-deploy-inner production v0.2.0` (break-glass admin; run 45485818588 cancelado; backup pré-deploy, health e frontend validados)
 - [ ] F-D6 assinaturas: data owner/DPO, Meireles/Vitor
 - [x] F-D2: testes de contrato/segurança, headers e cobertura (90% total; job API 84,5%; gate 75%)
-- [x] F-D7: uptime GitHub + healthcheck local (units) + monitoração/runbook/treinamento; ativar timer no próximo deploy
+- [x] F-D7: uptime GitHub + healthcheck local (units instaladas, timer ativo) + monitoração/runbook/treinamento
 - [ ] Backlog F-D5: backup binário criptografado/offsite, CSP/SRI, rate limit, version history do Sheet
 
 ## Pós-MVP

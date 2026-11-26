@@ -34,7 +34,8 @@ público).
 
 O script `jobs/healthcheck.py` verifica a API em `127.0.0.1:3103` e o último
 backup no SQLite. A unidade/timer estão em `deploy/sigpar-healthcheck.*`.
-A ativação acontece depois de um release que inclua `jobs/healthcheck.py`:
+Desde a `v0.2.1` o release inclui o script; as units foram instaladas e o timer
+está ativo (2026-11-26):
 
 ```bash
 sudo install -m 644 deploy/sigpar-healthcheck.service /etc/systemd/system/
@@ -45,8 +46,9 @@ sudo systemctl start sigpar-healthcheck.service
 sudo journalctl -u sigpar-healthcheck.service -n 30 --no-pager
 ```
 
-O check roda como `sigpar-prod`, somente leitura no banco. Falha = status
-`failed` no systemd; o alerta externo continua sendo a issue do GitHub.
+O check roda como `sigpar-prod` e abre o banco em `mode=ro`; a unit libera
+escrita no diretório apenas para o WAL/SHM do SQLite. Falha = status `failed`
+no systemd; o alerta externo continua sendo a issue do GitHub.
 
 ## Comandos manuais
 
